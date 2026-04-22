@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "gps_driver.h"
+#include "gps_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +48,7 @@ UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
 
 osThreadId defaultTaskHandle;
+osThreadId gpsTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -65,9 +67,9 @@ void StartDefaultTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-    Gps_RxCallback(huart);
+    Gps_RxCallback(huart, Size);
 }
 /* USER CODE END 0 */
 
@@ -130,6 +132,8 @@ int main(void)
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
+  osThreadDef(gpsTask, StartGpsTask, osPriorityAboveNormal, 0, 256);
+  gpsTaskHandle = osThreadCreate(osThread(gpsTask), NULL);
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */

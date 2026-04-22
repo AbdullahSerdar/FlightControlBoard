@@ -15,7 +15,7 @@ extern "C" {
 #include "main.h"
 #include <stdint.h>
 
-#define GPS_RX_BUFFER_SIZE   128U
+#define GPS_RX_BUFFER_SIZE   256U
 
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;

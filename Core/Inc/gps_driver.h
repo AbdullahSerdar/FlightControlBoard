@@ -14,6 +14,7 @@ extern "C" {
 
 #include "main.h"
 #include <stdint.h>
+#include "gps_hal.h"
 
 #define GPS_MODULE_SW_VERSION   (1.0f)
 
@@ -46,12 +47,8 @@ typedef enum
 } GPS_IOCTL_COMMANDS_T;
 
 GPSErrorCodes_t Gps_Open(void* vpParam);
-GPSErrorCodes_t Gps_Read(void* pvBuffer, uint32_t xBytes);
-GPSErrorCodes_t Gps_Write(const void* pvBuffer, uint32_t xBytes);
-GPSErrorCodes_t Gps_Ioctl(GPS_IOCTL_COMMANDS_T eCommand, void* vpParam);
 GPSErrorCodes_t Gps_Close(void* vpParam);
-
-void Gps_RxCallback(UART_HandleTypeDef* huart);
+void Gps_ResetBuffer(void);
 
 #ifdef __cplusplus
 }

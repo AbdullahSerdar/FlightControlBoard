@@ -56,6 +56,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_usart3_rx;
+extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
@@ -172,6 +173,34 @@ void DMA1_Stream1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
 
   /* USER CODE END DMA1_Stream1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART3_IRQn 0 */
+
+  /* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
+
+  /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
