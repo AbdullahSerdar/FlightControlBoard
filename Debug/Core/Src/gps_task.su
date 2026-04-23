@@ -1,5 +1,5 @@
-../Core/Src/gps_task.c:31:15:Nmea_ToDegrees	48	static
-../Core/Src/gps_task.c:41:16:Nmea_GetField	32	static
-../Core/Src/gps_task.c:70:6:Gps_TakeGPGGA	216	static
-../Core/Src/gps_task.c:162:6:Gps_RxCallback	16	static
-../Core/Src/gps_task.c:176:6:StartGpsTask	32	static
+../Core/Src/gps_task.c:29:15:Nmea_ToDegrees	48	static
+../Core/Src/gps_task.c:37:16:Nmea_GetField	32	static
+../Core/Src/gps_task.c:64:6:Gps_TakeGPGGA	216	static
+../Core/Src/gps_task.c:149:6:Gps_RxCallback	16	static
+../Core/Src/gps_task.c:163:6:StartGpsTask	32	static

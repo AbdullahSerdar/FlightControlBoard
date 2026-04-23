@@ -26,8 +26,6 @@ static volatile uint8_t  gps_buf_ready = 0;
 #include <stdlib.h>
 #include <string.h>
 
-// NMEA "DDMM.MMMMM" formatını decimal degree'ye çevirir
-// Örnek: 4106.53508 → 41 + (06.53508/60) = 41.10892
 static double Nmea_ToDegrees(const char *str)
 {
     double raw = atof(str);
@@ -36,13 +34,9 @@ static double Nmea_ToDegrees(const char *str)
     return degrees + (minutes / 60.0);
 }
 
-// Virgülle ayrılmış field'ı kopyalar
-// src: başlangıç pointer, dst: hedef buffer, field_idx: kaçıncı virgün sonrası
-static uint8_t Nmea_GetField(const char *src, uint16_t src_len,
-                              uint8_t field_idx, char *dst, uint8_t dst_size)
+static uint8_t Nmea_GetField(const char *src, uint16_t src_len, uint8_t field_idx, char *dst, uint8_t dst_size)
 {
     uint8_t  field = 0;
-    uint16_t j     = 0;
     uint16_t d     = 0;
 
     for (uint16_t i = 0; i < src_len; i++)
@@ -100,11 +94,9 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data)
                 uint16_t len = end - start;
                 const char *sentence = (const char *)&raw_gps_data[start];
 
-                // --- Parse ---
                 char field[20];
                 GpsParsedData_t parsed = {0};
 
-                // Fix quality (field 6) — 0 ise konum geçersiz
                 if (Nmea_GetField(sentence, len, 6, field, sizeof(field)))
                     parsed.fix_quality = (uint8_t)atoi(field);
 
@@ -115,7 +107,6 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data)
                     return;
                 }
 
-                // Latitude (field 2 + 3)
                 char lat_dir[4] = {0};
                 if (Nmea_GetField(sentence, len, 2, field, sizeof(field)) &&
                     Nmea_GetField(sentence, len, 3, lat_dir, sizeof(lat_dir)))
@@ -124,7 +115,6 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data)
                     if (lat_dir[0] == 'S') parsed.latitude = -parsed.latitude;
                 }
 
-                // Longitude (field 4 + 5)
                 char lon_dir[4] = {0};
                 if (Nmea_GetField(sentence, len, 4, field, sizeof(field)) &&
                     Nmea_GetField(sentence, len, 5, lon_dir, sizeof(lon_dir)))
@@ -133,15 +123,12 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data)
                     if (lon_dir[0] == 'W') parsed.longitude = -parsed.longitude;
                 }
 
-                // Altitude (field 9)
                 if (Nmea_GetField(sentence, len, 9, field, sizeof(field)))
                     parsed.altitude = atof(field);
 
-                // Satellites (field 7)
                 if (Nmea_GetField(sentence, len, 7, field, sizeof(field)))
                     parsed.satellites = (uint8_t)atoi(field);
 
-                // --- UART'a gönder ---
                 char out[80];
                 int  out_len = snprintf(out, sizeof(out),
                     "LAT:%.6f LON:%.6f ALT:%.1fm SAT:%d\r\n",
