@@ -5,26 +5,24 @@
  *      Author: serda
  */
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include "cmsis_os.h"
 #include "gps_driver.h"
 #include "gps_hal.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "gps_task.h"
 
 extern uint8_t gps_rx_buf[GPS_RX_BUFFER_SIZE];
-static volatile uint16_t gps_rx_size = 0;
+uint16_t gps_rx_size = 0;
 extern osThreadId gpsTaskHandle;
 GpsParsedData_t gps_data;
 
 static uint8_t gps_process_buf[GPS_RX_BUFFER_SIZE];
 static volatile uint8_t  gps_buf_ready = 0;
 
-// gps_task.c
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static double Nmea_ToDegrees(const char *str)
 {
@@ -61,9 +59,8 @@ static uint8_t Nmea_GetField(const char *src, uint16_t src_len, uint8_t field_id
     return 0; // bulunamadı
 }
 
-void Gps_TakeGPGGA(uint8_t *raw_gps_data)
+void Gps_TakeGPGGA(uint8_t *raw_gps_data, uint16_t size)
 {
-    uint16_t size = gps_rx_size;
     uint16_t i    = 0;
 
     if (raw_gps_data == NULL || size == 0)
@@ -148,31 +145,29 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data)
 
 void Gps_RxCallback(UART_HandleTypeDef* huart, uint16_t data_size)
 {
-    if (huart == GPS_DEVICE_UART)
-    {
-    	memcpy(gps_process_buf, gps_rx_buf, data_size);
-    	gps_rx_size = data_size;
+	if (huart != GPS_DEVICE_UART) return;
 
-    	HAL_UARTEx_ReceiveToIdle_DMA(GPS_DEVICE_UART, gps_rx_buf, sizeof(gps_rx_buf));
-    	__HAL_DMA_DISABLE_IT(GPS_DEVICE_UART->hdmarx, DMA_IT_HT);
+	    memcpy(gps_process_buf, gps_rx_buf, data_size);
+	    gps_rx_size = data_size;
 
-        osSignalSet(gpsTaskHandle, 0x01);
-    }
+	    HAL_UARTEx_ReceiveToIdle_DMA(GPS_DEVICE_UART, gps_rx_buf, sizeof(gps_rx_buf));
+	    __HAL_DMA_DISABLE_IT(GPS_DEVICE_UART->hdmarx, DMA_IT_HT);
+
+	    // ISR'dan FreeRTOS task notify — FromISR versiyonu kullan
+	    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	    vTaskNotifyGiveFromISR(gpsTaskHandle, &xHigherPriorityTaskWoken);
+	    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void StartGpsTask(void const * argument)
 {
 
-	HAL_UARTEx_ReceiveToIdle_DMA(GPS_DEVICE_UART, gps_rx_buf, sizeof(gps_rx_buf));
-	__HAL_DMA_DISABLE_IT(GPS_DEVICE_UART->hdmarx, DMA_IT_HT);
+	Gps_Open(NULL);
 
     for(;;)
     {
-    	osEvent evt = osSignalWait(0x01, osWaitForever);
-        if (evt.status == osEventSignal)
-        {
-        	Gps_TakeGPGGA(gps_rx_buf);
-        }
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        Gps_TakeGPGGA(gps_process_buf, gps_rx_size);
     }
 }
 

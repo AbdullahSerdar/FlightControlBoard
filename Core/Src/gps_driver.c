@@ -17,15 +17,11 @@ void Gps_ResetBuffer(void)
 
 GPSErrorCodes_t Gps_Open(void* vpParam)
 {
-    (void)vpParam;
-
     Gps_ResetBuffer();
-
     if (HAL_UARTEx_ReceiveToIdle_DMA(GPS_DEVICE_UART, gps_rx_buf, sizeof(gps_rx_buf)) != HAL_OK)
-    {
         return E_GPS_ERR_UART;
-    }
 
+    __HAL_DMA_DISABLE_IT(GPS_DEVICE_UART->hdmarx, DMA_IT_HT);  // ← bunu ekle
     return E_GPS_ERR_NONE;
 }
 

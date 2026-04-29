@@ -20,6 +20,6 @@ typedef struct
 
 void Gps_RxCallback(UART_HandleTypeDef* huart, uint16_t Size);
 void StartGpsTask(void const * argument);
-void Gps_TakeGPGGA(uint8_t *datas);
+void Gps_TakeGPGGA(uint8_t *datas, uint16_t size);
 
 #endif /* INC_GPS_TASK_H_ */
