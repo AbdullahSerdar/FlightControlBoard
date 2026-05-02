@@ -128,11 +128,6 @@ int BME_Config(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8
     HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_RESET, I2C_MEMADD_SIZE_8BIT, &reset_val, 1, 100);
     osDelay(10);
 
-    HAL_I2C_DeInit(BME_TRANSFER_PORT);
-    osDelay(5);
-    HAL_I2C_Init(BME_TRANSFER_PORT);
-    osDelay(5);
-
     if (read_trim_values() != HAL_OK) { return HAL_ERROR; }
 
     uint8_t dataowrite = (t_sb << 5) | (filter << 2);
@@ -173,6 +168,7 @@ void BME_Measure()
 	}
 
 }
+
 
 
 

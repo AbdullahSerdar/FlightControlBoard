@@ -5,6 +5,7 @@
 "./Core/Src/gps_task.o"
 "./Core/Src/imu_driver.o"
 "./Core/Src/main.o"
+"./Core/Src/mpu_task.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_hal_timebase_tim.o"
 "./Core/Src/stm32f4xx_it.o"

@@ -69,7 +69,6 @@ void compansate_temp(int32_t adc_T);
 int read_trim_values(void);
 double calculate_altitude(double pressure_pa);
 
-void BME_I2C_Recovery(void);
 
 #endif /* INC_BME_DRIVER_H_ */
 

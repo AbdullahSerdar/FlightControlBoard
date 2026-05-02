@@ -5,4 +5,4 @@
 ../Core/Src/bme_driver.c:85:6:compansate_temp	24	static
 ../Core/Src/bme_driver.c:96:10:compensate_pressure	328	static
 ../Core/Src/bme_driver.c:123:5:BME_Config	48	static
-../Core/Src/bme_driver.c:153:6:BME_Measure	8	static
+../Core/Src/bme_driver.c:148:6:BME_Measure	8	static

@@ -13,7 +13,6 @@ extern osThreadId bmeTaskHandle;
 
 void StartBmeTask(void const * argument)
 {
-  /* USER CODE BEGIN StartBmeTask */
     while (BME_Config(OSRS_2, OSRS_16, BME_NORMAL_MODE, T_SB1000, IIR_16) != HAL_OK)
     {
         osDelay(500);
