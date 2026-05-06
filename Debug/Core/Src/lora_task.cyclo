@@ -1,0 +1,4 @@
+../Core/Src/lora_task.c:17:16:Lora_Crc8_Xor	2
+../Core/Src/lora_task.c:29:14:Lora_CalculateFusionAltitude	6
+../Core/Src/lora_task.c:49:13:Lora_BuildPacket	1
+../Core/Src/lora_task.c:65:6:StartLoraTask	2

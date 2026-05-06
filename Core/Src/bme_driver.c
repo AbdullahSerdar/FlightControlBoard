@@ -12,6 +12,7 @@
 //int32_t T;
 int32_t t_fine;
 double altitude;
+double temperature_c;
 int32_t adc_p;
 int32_t adc_t;
 
@@ -24,7 +25,7 @@ int16_t dig_T2, dig_T3;
 
 double calculate_altitude(double pressure_pa)
 {
-    double sea_level_pressure_pa = 101325.0; // 1013.25 hPa
+    double sea_level_pressure_pa = 101325.0;
     return 44330.0 * (1.0 - pow(pressure_pa / sea_level_pressure_pa, 0.1903));
 }
 
@@ -90,6 +91,7 @@ void compansate_temp(int32_t adc_T)
 
     t_fine = var1 + var2;
 //    T = (t_fine * 5 + 128) >> 8;
+    temperature_c = (float)(((t_fine * 5 + 128) >> 8) / 100.0);
 //    return T;
 }
 
@@ -150,9 +152,14 @@ void BME_Measure()
 	if(!read_raw_data())
 	{
 		if(adc_t == 0x800000)
+        {
 			altitude = 0;
+            temperature_c = 0;
+        }
 		else
+        {
 			compansate_temp(adc_t);
+        }
 
         if (adc_p == 0x800000)
         	altitude = 0;
@@ -165,10 +172,20 @@ void BME_Measure()
 	else
 	{
 		altitude  = 0;
+        temperature_c = 0;
 	}
 
 }
 
+float BME_GetAltitude(void)
+{
+    return (float)altitude;
+}
+
+float BME_GetTemperature(void)
+{
+    return (float)temperature_c;
+}
 
 
 

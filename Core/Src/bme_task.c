@@ -8,6 +8,7 @@
 #include "bme_task.h"
 #include "cmsis_os.h"
 #include "bme_driver.h"
+#include "telemetry_data.h"
 
 extern osThreadId bmeTaskHandle;
 
@@ -21,6 +22,7 @@ void StartBmeTask(void const * argument)
 	for(;;)
 	{
 	    BME_Measure();
+	    TelemetryData_UpdateBme(BME_GetAltitude(), BME_GetTemperature());
 	  	osDelay(1000);
 	}
 

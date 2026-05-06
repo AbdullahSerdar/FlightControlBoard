@@ -57,12 +57,12 @@ extern I2C_HandleTypeDef hi2c2;
 
 uint8_t readChipID(uint8_t *id);
 
-
 int read_raw_data(void);
 int BME_Config(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
-
 void BME_Measure(void);
+float BME_GetAltitude(void);
+float BME_GetTemperature(void);
 uint32_t compensate_pressure(int32_t adc_P);
 void compansate_temp(int32_t adc_T);
 

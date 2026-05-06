@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "gps_task.h"
+#include "telemetry_data.h"
 
 extern uint8_t gps_rx_buf[GPS_RX_BUFFER_SIZE];
 uint16_t gps_rx_size = 0;
@@ -56,7 +57,7 @@ static uint8_t Nmea_GetField(const char *src, uint16_t src_len, uint8_t field_id
             dst[d++] = src[i];
     }
 
-    return 0; // bulunamadı
+    return 0; // bulunamadÄ±
 }
 
 void Gps_TakeGPGGA(uint8_t *raw_gps_data, uint16_t size)
@@ -94,15 +95,15 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data, uint16_t size)
                 char field[20];
                 GpsParsedData_t parsed = {0};
 
-                if (Nmea_GetField(sentence, len, 6, field, sizeof(field)))
-                    parsed.fix_quality = (uint8_t)atoi(field);
-
-                if (parsed.fix_quality == 0)
-                {
-                    HAL_UART_Transmit(GPS_DEBUG_UART,
-                        (uint8_t *)"NO FIX\r\n", 8, HAL_MAX_DELAY);
-                    return;
-                }
+//                if (Nmea_GetField(sentence, len, 6, field, sizeof(field)))
+//                    parsed.fix_quality = (uint8_t)atoi(field);
+//
+//                if (parsed.fix_quality == 0)
+//                {
+//                    HAL_UART_Transmit(GPS_DEBUG_UART,
+//                        (uint8_t *)"NO FIX\r\n", 8, HAL_MAX_DELAY);
+//                    return;
+//                }
 
                 char lat_dir[4] = {0};
                 if (Nmea_GetField(sentence, len, 2, field, sizeof(field)) &&
@@ -126,16 +127,23 @@ void Gps_TakeGPGGA(uint8_t *raw_gps_data, uint16_t size)
                 if (Nmea_GetField(sentence, len, 7, field, sizeof(field)))
                     parsed.satellites = (uint8_t)atoi(field);
 
-                char out[80];
-                int  out_len = snprintf(out, sizeof(out),
-                    "LAT:%.6f LON:%.6f ALT:%.1fm SAT:%d\r\n",
-                    parsed.latitude,
-                    parsed.longitude,
-                    parsed.altitude,
-                    parsed.satellites);
+                gps_data = parsed;
+                TelemetryData_UpdateGps(parsed.latitude,
+                                        parsed.longitude,
+                                        parsed.altitude,
+                                        parsed.satellites,
+                                        parsed.fix_quality > 0U);
 
-                HAL_UART_Transmit(GPS_DEBUG_UART,
-                    (uint8_t *)out, (uint16_t)out_len, HAL_MAX_DELAY);
+//                char out[80];
+//                int  out_len = snprintf(out, sizeof(out),
+//                    "LAT:%.6f LON:%.6f ALT:%.1fm SAT:%d\r\n",
+//                    parsed.latitude,
+//                    parsed.longitude,
+//                    parsed.altitude,
+//                    parsed.satellites);
+
+//                HAL_UART_Transmit(GPS_DEBUG_UART,
+//                    (uint8_t *)out, (uint16_t)out_len, HAL_MAX_DELAY);
             }
             return;
         }
@@ -153,7 +161,6 @@ void Gps_RxCallback(UART_HandleTypeDef* huart, uint16_t data_size)
 	    HAL_UARTEx_ReceiveToIdle_DMA(GPS_DEVICE_UART, gps_rx_buf, sizeof(gps_rx_buf));
 	    __HAL_DMA_DISABLE_IT(GPS_DEVICE_UART->hdmarx, DMA_IT_HT);
 
-	    // ISR'dan FreeRTOS task notify — FromISR versiyonu kullan
 	    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	    vTaskNotifyGiveFromISR(gpsTaskHandle, &xHigherPriorityTaskWoken);
 	    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -170,4 +177,3 @@ void StartGpsTask(void const * argument)
         Gps_TakeGPGGA(gps_process_buf, gps_rx_size);
     }
 }
-

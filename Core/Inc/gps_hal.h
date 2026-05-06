@@ -17,10 +17,9 @@ extern "C" {
 
 #define GPS_RX_BUFFER_SIZE   256U
 
-extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 
-#define GPS_DEBUG_UART       (&huart2)
+
 #define GPS_DEVICE_UART      (&huart3)
 
 #ifdef __cplusplus

@@ -1,0 +1,5 @@
+../Core/Src/telemetry_data.c:8:6:TelemetryData_Init	8	static
+../Core/Src/telemetry_data.c:13:6:TelemetryData_UpdateBme	16	static
+../Core/Src/telemetry_data.c:30:6:TelemetryData_UpdateGps	32	static
+../Core/Src/telemetry_data.c:53:6:TelemetryData_UpdateMpu	16	static
+../Core/Src/telemetry_data.c:70:6:TelemetryData_GetSnapshot	16	static

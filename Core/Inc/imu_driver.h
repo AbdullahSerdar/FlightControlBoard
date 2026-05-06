@@ -38,6 +38,8 @@ int MPU_ReadRaw(void);
 void MPU_CalibrateGyro(uint16_t sample_count);
 void MPU_UpdateAngles(float dt);
 
+HAL_StatusTypeDef MPU_ReadRaw_DMA(void);
+
 degree MPU_GetDegree(void);
 
 #endif /* INC_IMU_DRIVER_H_ */

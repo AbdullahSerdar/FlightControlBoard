@@ -1,0 +1,2 @@
+../Core/Src/lora_driver.c:11:19:Lora_Init	40	static
+../Core/Src/lora_driver.c:43:19:LoRa_Transmit	16	static

@@ -27,6 +27,8 @@
 #include "gps_task.h"
 #include "bme_driver.h"
 #include "imu_driver.h"
+#include "lora_task.h"
+#include "telemetry_data.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +57,8 @@ DMA_HandleTypeDef hdma_usart3_rx;
 osThreadId gpsTaskHandle;
 osThreadId bmeTaskHandle;
 osThreadId mpuTaskHandle;
+osThreadId loraTaskHandle;
+osMutexId telemetryMutexHandle;
 /* USER CODE BEGIN PV */
 uint8_t buffer_who;
 /* USER CODE END PV */
@@ -70,6 +74,7 @@ static void MX_I2C1_Init(void);
 void StartGpsTask(void const * argument);
 void StartBmeTask(void const * argument);
 void StartMpuTask(void const * argument);
+void StartLoraTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -122,6 +127,11 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Create the mutex(es) */
+  /* definition and creation of telemetryMutex */
+  osMutexDef(telemetryMutex);
+  telemetryMutexHandle = osMutexCreate(osMutex(telemetryMutex));
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -150,6 +160,10 @@ int main(void)
   /* definition and creation of mpuTask */
   osThreadDef(mpuTask, StartMpuTask, osPriorityNormal, 0, 256);
   mpuTaskHandle = osThreadCreate(osThread(mpuTask), NULL);
+
+  /* definition and creation of loraTask */
+  osThreadDef(loraTask, StartLoraTask, osPriorityNormal, 0, 384);
+  loraTaskHandle = osThreadCreate(osThread(loraTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -372,6 +386,7 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
@@ -380,6 +395,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LORA_M0_Pin|LORA_M1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : LORA_M0_Pin LORA_M1_Pin */
+  GPIO_InitStruct.Pin = LORA_M0_Pin|LORA_M1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
