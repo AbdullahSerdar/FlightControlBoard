@@ -1,6 +1,6 @@
-#include "imu_driver.h"
 #include "cmsis_os.h"
 #include <math.h>
+#include <mpu_driver.h>
 
 static int16_t acc_raw[3];
 static int16_t gyro_raw[3];
@@ -13,27 +13,25 @@ static float gyro_offset_dps[3] = {0.0f, 0.0f, 0.0f};
 static float roll_acc = 0.0f;
 static float pitch_acc = 0.0f;
 
-static degree degree_mpu = {
+static mpu_degree degree_mpu = {
     .angle_pitch = 0.0f,
     .angle_roll = 0.0f
 };
 
-uint8_t WhoAmI(uint8_t *buffer_who)
+MPU_ErrorCodes MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
 {
+    HAL_StatusTypeDef status;
+
+    uint8_t who_I;
     HAL_I2C_Mem_Read(MPU_I2C_PORT,
                      MPU6050_ADRESS << 1,
                      MPU6050_WHO_AM_I,
                      I2C_MEMADD_SIZE_8BIT,
-                     buffer_who,
+					 &who_I,
                      1,
                      HAL_MAX_DELAY);
-
-    return *buffer_who;
-}
-
-int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
-{
-    HAL_StatusTypeDef status;
+    osDelay(50);
+    if(who_I != MPU6050_CHIP_ID){ return E_MPU_ERR_WRONG_ID; }
 
     status = HAL_I2C_Mem_Write(MPU_I2C_PORT,
                                MPU6050_ADRESS << 1,
@@ -42,8 +40,8 @@ int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
                                &pwr_mgmt,
                                1,
                                100);
-    if (status != HAL_OK) return status;
     osDelay(50);
+    if (status != HAL_OK) { return E_MPU_ERR_HAL; }
 
     status = HAL_I2C_Mem_Write(MPU_I2C_PORT,
                                MPU6050_ADRESS << 1,
@@ -52,7 +50,7 @@ int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
                                &config,
                                1,
                                100);
-    if (status != HAL_OK) return status;
+    if (status != HAL_OK) return E_MPU_ERR_HAL;
     osDelay(50);
 
     status = HAL_I2C_Mem_Write(MPU_I2C_PORT,
@@ -62,7 +60,7 @@ int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
                                &gyro,
                                1,
                                100);
-    if (status != HAL_OK) return status;
+    if (status != HAL_OK) return E_MPU_ERR_HAL;
     osDelay(50);
 
     status = HAL_I2C_Mem_Write(MPU_I2C_PORT,
@@ -72,13 +70,13 @@ int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel)
                                &accel,
                                1,
                                100);
-    if (status != HAL_OK) return status;
+    if (status != HAL_OK) return E_MPU_ERR_HAL;
     osDelay(50);
 
-    return HAL_OK;
+    return E_MPU_ERR_NONE;
 }
 
-int MPU_ReadRaw(void)
+MPU_ErrorCodes MPU_ReadRaw(void)
 {
     HAL_StatusTypeDef status;
     uint8_t mpu_raw_data[14];
@@ -93,7 +91,7 @@ int MPU_ReadRaw(void)
 
     if (status != HAL_OK)
     {
-        return status;
+        return E_MPU_ERR_HAL;
     }
 
     acc_raw[0] = (int16_t)((mpu_raw_data[0] << 8) | mpu_raw_data[1]);
@@ -112,7 +110,7 @@ int MPU_ReadRaw(void)
     gyro_dps[1] = (gyro_raw[1] / GYRO_SENS_500) - gyro_offset_dps[1];
     gyro_dps[2] = (gyro_raw[2] / GYRO_SENS_500) - gyro_offset_dps[2];
 
-    return HAL_OK;
+    return E_MPU_ERR_NONE;
 }
 
 static void MPU_CalculateAccAngles(void)
@@ -137,7 +135,7 @@ void MPU_CalibrateGyro(uint16_t sample_count)
 
     for (uint16_t i = 0; i < sample_count; i++)
     {
-        if (MPU_ReadRaw() == HAL_OK)
+        if (MPU_ReadRaw() == E_MPU_ERR_NONE)
         {
             sum_x += gyro_raw[0] / GYRO_SENS_500;
             sum_y += gyro_raw[1] / GYRO_SENS_500;
@@ -170,7 +168,7 @@ void MPU_UpdateAngles(float dt)
         + (1.0f - COMPLEMENTARY_ALPHA) * pitch_acc;
 }
 
-degree MPU_GetDegree(void)
+mpu_degree MPU_GetDegree(void)
 {
     return degree_mpu;
 }

@@ -1,7 +1,0 @@
-../Drivers/dev_mpu/src/imu_driver.c:21:9:WhoAmI	32	static
-../Drivers/dev_mpu/src/imu_driver.c:34:5:MPU_config	48	static
-../Drivers/dev_mpu/src/imu_driver.c:81:5:MPU_ReadRaw	40	static
-../Drivers/dev_mpu/src/imu_driver.c:118:13:MPU_CalculateAccAngles	16	static
-../Drivers/dev_mpu/src/imu_driver.c:128:6:MPU_CalibrateGyro	32	static
-../Drivers/dev_mpu/src/imu_driver.c:155:6:MPU_UpdateAngles	16	static
-../Drivers/dev_mpu/src/imu_driver.c:173:8:MPU_GetDegree	24	static

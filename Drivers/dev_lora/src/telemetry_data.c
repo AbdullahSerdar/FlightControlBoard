@@ -55,7 +55,7 @@ void TelemetryData_UpdateGps(GpsParsedData_t gps_parser)
     unlock_mutex(telemetryMutexHandle);
 }
 
-void TelemetryData_UpdateMpu(float pitch, float roll)
+void TelemetryData_UpdateMpu(mpu_degree degree)
 {
     if (telemetryMutexHandle == NULL)
     {
@@ -64,8 +64,8 @@ void TelemetryData_UpdateMpu(float pitch, float roll)
 
     lock_mutex(telemetryMutexHandle);
 
-    gTelemetryData.mpu_pitch = pitch;
-    gTelemetryData.mpu_roll = roll;
+    gTelemetryData.mpu_pitch = degree.angle_pitch;
+    gTelemetryData.mpu_roll = degree.angle_roll;
     gTelemetryData.mpu_valid = 1U;
     gTelemetryData.mpu_tick = osKernelSysTick();
 

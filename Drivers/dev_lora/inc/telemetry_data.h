@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "nmea_parser.h"
+#include "mpu_driver.h"
 
 typedef struct
 {
@@ -30,7 +31,7 @@ void TelemetryData_UpdateBme(float altitude, float temperature);
 
 void TelemetryData_UpdateGps(GpsParsedData_t gps_parser);
 
-void TelemetryData_UpdateMpu(float pitch, float roll);
+void TelemetryData_UpdateMpu(mpu_degree degree);
 
 void TelemetryData_GetSnapshot(TelemetryData_t *out);
 

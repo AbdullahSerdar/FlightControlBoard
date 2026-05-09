@@ -9,6 +9,7 @@ extern I2C_HandleTypeDef hi2c1;
 #define MPU_I2C_PORT          (&hi2c1)
 #define MPU6050_ADRESS        0x68
 
+#define MPU6050_CHIP_ID       0x68
 #define MPU6050_WHO_AM_I      0x75
 #define MPU_READ_REG          0x3B
 
@@ -28,18 +29,21 @@ typedef struct
 {
     float angle_pitch;
     float angle_roll;
-} degree;
+} mpu_degree;
 
-uint8_t WhoAmI(uint8_t *buffer_who);
+typedef enum{
+	E_MPU_ERR_NONE,
+	E_MPU_ERR_HAL,
+	E_MPU_ERR_WRONG_ID,
+	E_MPU_ERR_UNKNOWN
+}MPU_ErrorCodes;
 
-int MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel);
+MPU_ErrorCodes MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_t accel);
+MPU_ErrorCodes MPU_ReadRaw(void);
 
-int MPU_ReadRaw(void);
 void MPU_CalibrateGyro(uint16_t sample_count);
 void MPU_UpdateAngles(float dt);
 
-HAL_StatusTypeDef MPU_ReadRaw_DMA(void);
-
-degree MPU_GetDegree(void);
+mpu_degree MPU_GetDegree(void);
 
 #endif /* INC_IMU_DRIVER_H_ */
