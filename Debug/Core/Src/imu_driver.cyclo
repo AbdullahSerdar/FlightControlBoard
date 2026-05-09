@@ -1,7 +1,0 @@
-../Core/Src/imu_driver.c:21:9:WhoAmI	1
-../Core/Src/imu_driver.c:34:5:MPU_config	5
-../Core/Src/imu_driver.c:81:5:MPU_ReadRaw	2
-../Core/Src/imu_driver.c:118:13:MPU_CalculateAccAngles	1
-../Core/Src/imu_driver.c:128:6:MPU_CalibrateGyro	3
-../Core/Src/imu_driver.c:155:6:MPU_UpdateAngles	3
-../Core/Src/imu_driver.c:173:8:MPU_GetDegree	1

@@ -23,12 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "gps_driver.h"
 #include "gps_task.h"
-#include "bme_driver.h"
-#include "imu_driver.h"
-#include "lora_task.h"
-#include "telemetry_data.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +55,7 @@ osThreadId mpuTaskHandle;
 osThreadId loraTaskHandle;
 osMutexId telemetryMutexHandle;
 /* USER CODE BEGIN PV */
-uint8_t buffer_who;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

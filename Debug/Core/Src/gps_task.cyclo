@@ -1,5 +1,0 @@
-../Core/Src/gps_task.c:28:15:Nmea_ToDegrees	1
-../Core/Src/gps_task.c:36:16:Nmea_GetField	8
-../Core/Src/gps_task.c:63:6:Gps_TakeGPGGA	24
-../Core/Src/gps_task.c:154:6:Gps_RxCallback	3
-../Core/Src/gps_task.c:169:6:StartGpsTask	1

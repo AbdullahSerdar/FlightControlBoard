@@ -1,0 +1,5 @@
+../Drivers/dev_gps/src/gps_task.c:28:15:Nmea_ToDegrees	48	static
+../Drivers/dev_gps/src/gps_task.c:36:16:Nmea_GetField	32	static
+../Drivers/dev_gps/src/gps_task.c:63:6:Gps_TakeGPGGA	104	static
+../Drivers/dev_gps/src/gps_task.c:144:6:Gps_RxCallback	24	static,ignoring_inline_asm
+../Drivers/dev_gps/src/gps_task.c:159:6:StartGpsTask	16	static

@@ -46,9 +46,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- ../Core/Inc/gps_driver.h ../Core/Inc/main.h ../Core/Inc/gps_hal.h \
- ../Core/Inc/gps_task.h ../Core/Inc/bme_driver.h ../Core/Inc/imu_driver.h \
- ../Core/Inc/lora_task.h ../Core/Inc/telemetry_data.h
+ C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_gps/inc/gps_task.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -97,11 +95,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
-../Core/Inc/gps_driver.h:
-../Core/Inc/main.h:
-../Core/Inc/gps_hal.h:
-../Core/Inc/gps_task.h:
-../Core/Inc/bme_driver.h:
-../Core/Inc/imu_driver.h:
-../Core/Inc/lora_task.h:
-../Core/Inc/telemetry_data.h:
+C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_gps/inc/gps_task.h:

@@ -1,0 +1,4 @@
+../Drivers/dev_lora/src/lora_task.c:17:16:Lora_Crc8_Xor	24	static
+../Drivers/dev_lora/src/lora_task.c:29:14:Lora_CalculateFusionAltitude	16	static
+../Drivers/dev_lora/src/lora_task.c:49:13:Lora_BuildPacket	16	static
+../Drivers/dev_lora/src/lora_task.c:65:6:StartLoraTask	136	static

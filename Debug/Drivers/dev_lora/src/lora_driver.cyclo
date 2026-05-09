@@ -1,0 +1,2 @@
+../Drivers/dev_lora/src/lora_driver.c:11:19:Lora_Init	1
+../Drivers/dev_lora/src/lora_driver.c:43:19:LoRa_Transmit	2
