@@ -27,12 +27,14 @@ typedef struct __attribute__((packed))
     uint8_t crc;
 } LoRaPacket_t;
 
-HAL_StatusTypeDef Lora_Init(uint8_t adressH,
-                            uint8_t adressL,
-                            uint8_t reg0,
-                            uint8_t reg1,
-                            uint8_t channel);
+typedef enum{
+	E_LORA_ERR_NONE,
+	E_LORA_ERR_HAL,
+	E_LORA_ERR_NULL,
+	E_LORA_ERR_UNKNOWN
+}Lora_ErrorCode;
 
-HAL_StatusTypeDef LoRa_Transmit(LoRaPacket_t *packet);
+Lora_ErrorCode Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t reg1, uint8_t channel);
+Lora_ErrorCode LoRa_Transmit(LoRaPacket_t *packet);
 
 #endif /* INC_LORA_DRIVER_H_ */

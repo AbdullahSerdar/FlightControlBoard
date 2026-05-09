@@ -45,7 +45,6 @@ GPSErrorCodes_t Gps_Close(void* vpParam);
 void Gps_ResetBuffer(void);
 
 uint8_t Gps_ReadLine(char *line, uint16_t max_len);
-
 uint32_t Gps_GetOverflowCount(void);
 
 #ifdef __cplusplus

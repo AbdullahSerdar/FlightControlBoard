@@ -8,7 +8,7 @@
 #include "lora_driver.h"
 #include "cmsis_os.h"
 
-HAL_StatusTypeDef Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t reg1, uint8_t channel)
+Lora_ErrorCode Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t reg1, uint8_t channel)
 {
     HAL_StatusTypeDef status;
 
@@ -29,6 +29,7 @@ HAL_StatusTypeDef Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint
     configPacket[7] = channel;
 
     status = HAL_UART_Transmit(LORA_TRANSMIT, configPacket, sizeof(configPacket), 1000);
+    if(status != HAL_OK) { return E_LORA_ERR_HAL; }
 
     osDelay(100);
 
@@ -37,14 +38,14 @@ HAL_StatusTypeDef Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint
 
     osDelay(50);
 
-    return status;
+    return E_LORA_ERR_NONE;
 }
 
-HAL_StatusTypeDef LoRa_Transmit(LoRaPacket_t *packet)
+Lora_ErrorCode LoRa_Transmit(LoRaPacket_t *packet)
 {
     if (packet == NULL)
     {
-        return HAL_ERROR;
+        return E_LORA_ERR_NULL;
     }
 
     return HAL_UART_Transmit(LORA_TRANSMIT, (uint8_t *)packet, sizeof(LoRaPacket_t), 100);
