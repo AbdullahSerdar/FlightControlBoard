@@ -35,11 +35,18 @@ typedef enum
     E_GPS_IOCTL_PRINT_LAST_RAW
 } GPS_IOCTL_COMMANDS_T;
 
+
 void Gps_RxCallback(UART_HandleTypeDef* huart, uint16_t Size);
-void Gps_TakeGPGGA(uint8_t *datas, uint16_t size);
+
+
 GPSErrorCodes_t Gps_Open(void* vpParam);
 GPSErrorCodes_t Gps_Close(void* vpParam);
+
 void Gps_ResetBuffer(void);
+
+uint8_t Gps_ReadLine(char *line, uint16_t max_len);
+
+uint32_t Gps_GetOverflowCount(void);
 
 #ifdef __cplusplus
 }

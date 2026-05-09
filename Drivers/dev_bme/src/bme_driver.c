@@ -11,28 +11,33 @@
 
 #define ALTITUDE(press)   	(44330.0 * (1.0 - pow( (press) / 101325.0 , 0.1903)))
 
+static void compansate_temp(int32_t adc_T);
+static uint32_t compensate_pressure(int32_t adc_P);
+static int read_trim_values();
+static int read_raw_data();
+
 //int32_t T;
-int32_t t_fine;
-double altitude;
-double temperature_c;
-int32_t adc_p;
-int32_t adc_t;
+static int32_t t_fine;
+static double altitude;
+static double temperature_c;
+static int32_t adc_p;
+static int32_t adc_t;
 
-uint8_t trim_prmt[24];
-uint16_t dig_P1;
-int16_t dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
+static uint8_t trim_prmt[24];
+static uint16_t dig_P1;
+static int16_t dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
-uint16_t dig_T1;
-int16_t dig_T2, dig_T3;
+static uint16_t dig_T1;
+static int16_t dig_T2, dig_T3;
 
-int read_trim_values()
+static int read_trim_values()
 {
 	HAL_StatusTypeDef status;
 	status = HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CONST, I2C_MEMADD_SIZE_8BIT, trim_prmt, 24, 1000);
 
 	if(status != HAL_OK)
 	{
-		return status;
+		return E_BME_ERR_HAL;
 	}
 
 	dig_T1 = (uint16_t)((trim_prmt[1] << 8) | trim_prmt[0]);
@@ -49,22 +54,10 @@ int read_trim_values()
 	dig_P8 = (int16_t)((trim_prmt[21] << 8) | trim_prmt[20]);
 	dig_P9 = (int16_t)((trim_prmt[23] << 8) | trim_prmt[22]);
 
-	return HAL_OK;
+	return E_BME_ERR_NONE;
 }
 
-
-
-
-uint8_t readChipID(uint8_t *chip_id)
-{
-	HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BMECHIP_ID_REGISTER, I2C_MEMADD_SIZE_8BIT, chip_id, 1, 1000);
-	osDelay(50);
-	return *chip_id;
-}
-
-
-
-int read_raw_data()
+static int read_raw_data()
 {
 	HAL_StatusTypeDef status;
 	uint8_t raw_sensor_data[6];
@@ -78,8 +71,7 @@ int read_raw_data()
 	return HAL_OK;
 }
 
-
-void compansate_temp(int32_t adc_T)
+static void compansate_temp(int32_t adc_T)
 {
 	int32_t var1, var2;
     var1 = ((((adc_T >> 3) - ((int32_t)dig_T1 << 1))) * ((int32_t)dig_T2)) >> 11;
@@ -91,7 +83,7 @@ void compansate_temp(int32_t adc_T)
 //    return T;
 }
 
-uint32_t compensate_pressure(int32_t adc_P)
+static uint32_t compensate_pressure(int32_t adc_P)
 {
     int64_t var1, var2, p;
 
@@ -115,32 +107,34 @@ uint32_t compensate_pressure(int32_t adc_P)
     return (uint32_t)p;
 }
 
-
-
-
-int BME_Config(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter)
+Bme_ErrorCodes BME_Open(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter)
 {
     HAL_StatusTypeDef status;
+
+    uint8_t chip_id;
+	HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BMECHIP_ID_REGISTER, I2C_MEMADD_SIZE_8BIT, &chip_id, 1, 1000);
+	osDelay(50);
+	if(chip_id != BME_CHIP_ID) { return E_BME_ERR_WRONG_ID; }
 
     uint8_t reset_val = 0xB6;
     HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_RESET, I2C_MEMADD_SIZE_8BIT, &reset_val, 1, 100);
     osDelay(10);
 
-    if (read_trim_values() != HAL_OK) { return HAL_ERROR; }
+    if (read_trim_values() != E_BME_ERR_NONE) { return E_BME_ERR_HAL; }
 
     uint8_t dataowrite = (t_sb << 5) | (filter << 2);
     status = HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CONFIG,
                                 I2C_MEMADD_SIZE_8BIT, &dataowrite, 1, 100);
-    if (status != HAL_OK) { return status; }
+    if (status != HAL_OK) { return E_BME_ERR_HAL; }
     osDelay(10);
 
     dataowrite = (osrs_t << 5) | (osrs_p << 2) | mode;
     status = HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CTRL_MEAS,
                                 I2C_MEMADD_SIZE_8BIT, &dataowrite, 1, 100);
-    if (status != HAL_OK) { return status; }
+    if (status != HAL_OK) { return E_BME_ERR_HAL; }
     osDelay(10);
 
-    return HAL_OK;
+    return E_BME_ERR_NONE;
 }
 
 void BME_Measure()

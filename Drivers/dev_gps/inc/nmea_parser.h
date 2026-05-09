@@ -20,5 +20,6 @@ typedef struct
 } GpsParsedData_t;
 
 GpsParsedData_t Gps_Datas(void);
+void Nmea_ParseGPGGA(uint8_t *datas, uint16_t size);
 
 #endif /* DEV_GPS_INC_NMEA_PARSER_H_ */

@@ -9,7 +9,7 @@
 #include "nmea_parser.h"
 
 
-GpsParsedData_t parsed = {0};
+static GpsParsedData_t parsed = {0};
 
 static double Nmea_ToDegrees(const char *str)
 {
@@ -46,7 +46,7 @@ static uint8_t Nmea_GetField(const char *src, uint16_t src_len, uint8_t field_id
     return 0;
 }
 
-void Gps_TakeGPGGA(uint8_t *raw_gps_data, uint16_t size)
+void Nmea_ParseGPGGA(uint8_t *raw_gps_data, uint16_t size)
 {
     uint16_t i    = 0;
 

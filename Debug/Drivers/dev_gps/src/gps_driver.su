@@ -1,4 +1,8 @@
-../Drivers/dev_gps/src/gps_driver.c:18:6:Gps_RxCallback	16	static
-../Drivers/dev_gps/src/gps_driver.c:30:6:Gps_ResetBuffer	8	static
-../Drivers/dev_gps/src/gps_driver.c:35:17:Gps_Open	16	static
-../Drivers/dev_gps/src/gps_driver.c:45:17:Gps_Close	16	static
+../Drivers/dev_gps/src/gps_driver.c:19:13:GPS_RingWriteByte	24	static
+../Drivers/dev_gps/src/gps_driver.c:34:16:GPS_RingReadByte	16	static
+../Drivers/dev_gps/src/gps_driver.c:52:6:Gps_RxCallback	24	static
+../Drivers/dev_gps/src/gps_driver.c:73:9:Gps_ReadLine	24	static
+../Drivers/dev_gps/src/gps_driver.c:113:6:Gps_ResetBuffer	8	static
+../Drivers/dev_gps/src/gps_driver.c:123:10:Gps_GetOverflowCount	4	static
+../Drivers/dev_gps/src/gps_driver.c:128:17:Gps_Open	16	static
+../Drivers/dev_gps/src/gps_driver.c:144:17:Gps_Close	16	static

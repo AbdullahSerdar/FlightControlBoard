@@ -14,6 +14,7 @@
 
 extern I2C_HandleTypeDef hi2c2;
 
+#define BME_CHIP_ID 		0x60
 #define BME_TRANSFER_PORT   (&hi2c2)
 
 #define BME_RESET		     0xE0
@@ -53,21 +54,18 @@ extern I2C_HandleTypeDef hi2c2;
 #define IIR_8	 0x03
 #define IIR_16	 0x04
 
+typedef enum {
+	E_BME_ERR_NONE,
+	E_BME_ERR_WRONG_ID,
+	E_BME_ERR_HAL,
+	E_BME_ERR_UNKNOWN,
+}Bme_ErrorCodes;
 
-
-uint8_t readChipID(uint8_t *id);
-
-int read_raw_data(void);
-int BME_Config(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter);
+Bme_ErrorCodes BME_Open(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 void BME_Measure(void);
 float BME_GetAltitude(void);
 float BME_GetTemperature(void);
-uint32_t compensate_pressure(int32_t adc_P);
-void compansate_temp(int32_t adc_T);
-
-int read_trim_values(void);
-
 
 #endif /* INC_BME_DRIVER_H_ */
 
