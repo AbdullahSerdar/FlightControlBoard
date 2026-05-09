@@ -37,11 +37,7 @@ void TelemetryData_UpdateBme(float altitude, float temperature)
     unlock_mutex(telemetryMutexHandle);
 }
 
-void TelemetryData_UpdateGps(double latitude,
-                             double longitude,
-                             float altitude,
-                             uint8_t satellites,
-                             uint8_t valid)
+void TelemetryData_UpdateGps(GpsParsedData_t gps_parser)
 {
     if (telemetryMutexHandle == NULL)
     {
@@ -50,11 +46,10 @@ void TelemetryData_UpdateGps(double latitude,
 
     lock_mutex(telemetryMutexHandle);
 
-    gTelemetryData.gps_latitude = latitude;
-    gTelemetryData.gps_longitude = longitude;
-    gTelemetryData.gps_altitude = altitude;
-    gTelemetryData.gps_satellites = satellites;
-    gTelemetryData.gps_valid = valid ? 1U : 0U;
+    gTelemetryData.gps_latitude = gps_parser.latitude;
+    gTelemetryData.gps_longitude = gps_parser.longitude;
+    gTelemetryData.gps_altitude = gps_parser.altitude;
+    gTelemetryData.gps_satellites = gps_parser.satellites;
     gTelemetryData.gps_tick = osKernelSysTick();
 
     unlock_mutex(telemetryMutexHandle);

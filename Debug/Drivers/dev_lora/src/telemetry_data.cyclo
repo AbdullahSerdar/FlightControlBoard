@@ -2,6 +2,6 @@
 ../Drivers/dev_lora/src/telemetry_data.c:13:13:unlock_mutex	1
 ../Drivers/dev_lora/src/telemetry_data.c:18:6:TelemetryData_Init	1
 ../Drivers/dev_lora/src/telemetry_data.c:23:6:TelemetryData_UpdateBme	2
-../Drivers/dev_lora/src/telemetry_data.c:40:6:TelemetryData_UpdateGps	3
-../Drivers/dev_lora/src/telemetry_data.c:63:6:TelemetryData_UpdateMpu	2
-../Drivers/dev_lora/src/telemetry_data.c:80:6:TelemetryData_GetSnapshot	3
+../Drivers/dev_lora/src/telemetry_data.c:40:6:TelemetryData_UpdateGps	2
+../Drivers/dev_lora/src/telemetry_data.c:58:6:TelemetryData_UpdateMpu	2
+../Drivers/dev_lora/src/telemetry_data.c:75:6:TelemetryData_GetSnapshot	3

@@ -2,6 +2,7 @@
 #define INC_TELEMETRY_DATA_H_
 
 #include <stdint.h>
+#include "nmea_parser.h"
 
 typedef struct
 {
@@ -13,7 +14,6 @@ typedef struct
     double gps_longitude;
     float gps_altitude;
     uint8_t gps_satellites;
-    uint8_t gps_valid;
 
     float mpu_pitch;
     float mpu_roll;
@@ -28,11 +28,7 @@ void TelemetryData_Init(void);
 
 void TelemetryData_UpdateBme(float altitude, float temperature);
 
-void TelemetryData_UpdateGps(double latitude,
-                             double longitude,
-                             float altitude,
-                             uint8_t satellites,
-                             uint8_t valid);
+void TelemetryData_UpdateGps(GpsParsedData_t gps_parser);
 
 void TelemetryData_UpdateMpu(float pitch, float roll);
 

@@ -29,6 +29,7 @@
 "./Drivers/dev_bme/src/bme_task.o"
 "./Drivers/dev_gps/src/gps_driver.o"
 "./Drivers/dev_gps/src/gps_task.o"
+"./Drivers/dev_gps/src/nmea_parser.o"
 "./Drivers/dev_lora/src/lora_driver.o"
 "./Drivers/dev_lora/src/lora_task.o"
 "./Drivers/dev_lora/src/telemetry_data.o"

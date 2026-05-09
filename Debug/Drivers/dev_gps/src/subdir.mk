@@ -6,15 +6,18 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Drivers/dev_gps/src/gps_driver.c \
-../Drivers/dev_gps/src/gps_task.c 
+../Drivers/dev_gps/src/gps_task.c \
+../Drivers/dev_gps/src/nmea_parser.c 
 
 OBJS += \
 ./Drivers/dev_gps/src/gps_driver.o \
-./Drivers/dev_gps/src/gps_task.o 
+./Drivers/dev_gps/src/gps_task.o \
+./Drivers/dev_gps/src/nmea_parser.o 
 
 C_DEPS += \
 ./Drivers/dev_gps/src/gps_driver.d \
-./Drivers/dev_gps/src/gps_task.d 
+./Drivers/dev_gps/src/gps_task.d \
+./Drivers/dev_gps/src/nmea_parser.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +27,7 @@ Drivers/dev_gps/src/%.o Drivers/dev_gps/src/%.su Drivers/dev_gps/src/%.cyclo: ..
 clean: clean-Drivers-2f-dev_gps-2f-src
 
 clean-Drivers-2f-dev_gps-2f-src:
-	-$(RM) ./Drivers/dev_gps/src/gps_driver.cyclo ./Drivers/dev_gps/src/gps_driver.d ./Drivers/dev_gps/src/gps_driver.o ./Drivers/dev_gps/src/gps_driver.su ./Drivers/dev_gps/src/gps_task.cyclo ./Drivers/dev_gps/src/gps_task.d ./Drivers/dev_gps/src/gps_task.o ./Drivers/dev_gps/src/gps_task.su
+	-$(RM) ./Drivers/dev_gps/src/gps_driver.cyclo ./Drivers/dev_gps/src/gps_driver.d ./Drivers/dev_gps/src/gps_driver.o ./Drivers/dev_gps/src/gps_driver.su ./Drivers/dev_gps/src/gps_task.cyclo ./Drivers/dev_gps/src/gps_task.d ./Drivers/dev_gps/src/gps_task.o ./Drivers/dev_gps/src/gps_task.su ./Drivers/dev_gps/src/nmea_parser.cyclo ./Drivers/dev_gps/src/nmea_parser.d ./Drivers/dev_gps/src/nmea_parser.o ./Drivers/dev_gps/src/nmea_parser.su
 
 .PHONY: clean-Drivers-2f-dev_gps-2f-src
 

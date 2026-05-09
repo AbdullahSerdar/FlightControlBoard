@@ -28,7 +28,7 @@ static uint8_t Lora_Crc8_Xor(const uint8_t *data, uint16_t len)
 
 static float Lora_CalculateFusionAltitude(const TelemetryData_t *data)
 {
-    if (data->bme_valid && data->gps_valid && data->gps_satellites >= 6U)
+    if (data->bme_valid && data->gps_satellites >= 6U)
     {
         return (data->bme_altitude + data->gps_altitude) * 0.5f;
     }
@@ -36,11 +36,6 @@ static float Lora_CalculateFusionAltitude(const TelemetryData_t *data)
     if (data->bme_valid)
     {
         return data->bme_altitude;
-    }
-
-    if (data->gps_valid)
-    {
-        return data->gps_altitude;
     }
 
     return 0.0f;
