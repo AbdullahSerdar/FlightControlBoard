@@ -1,4 +1,5 @@
-../Drivers/dev_lora/src/lora_task.c:17:16:Lora_Crc8_Xor	24	static
-../Drivers/dev_lora/src/lora_task.c:29:14:Lora_CalculateFusionAltitude	16	static
-../Drivers/dev_lora/src/lora_task.c:44:13:Lora_BuildPacket	16	static
-../Drivers/dev_lora/src/lora_task.c:60:6:StartLoraTask	136	static
+../Drivers/dev_lora/src/lora_task.c:19:16:Lora_IsGpsValid	16	static
+../Drivers/dev_lora/src/lora_task.c:40:17:Lora_BuildSensorStatus	24	static
+../Drivers/dev_lora/src/lora_task.c:62:14:Lora_CalculateFusionAltitude	16	static
+../Drivers/dev_lora/src/lora_task.c:77:13:Lora_BuildPacket	16	static
+../Drivers/dev_lora/src/lora_task.c:111:6:StartLoraTask	152	static

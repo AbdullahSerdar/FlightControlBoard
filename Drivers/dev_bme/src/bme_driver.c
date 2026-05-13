@@ -7,7 +7,8 @@
 
 #include "bme_driver.h"
 #include <math.h>
-#include "cmsis_os.h"
+#include <cmsis_os.h>
+#include <stdio.h>
 
 #define ALTITUDE(press)   	(44330.0 * (1.0 - pow( (press) / 101325.0 , 0.1903)))
 
@@ -176,6 +177,43 @@ float BME_GetTemperature(void)
 {
     return (float)temperature_c;
 }
+
+
+#if BME_TEST_ENABLE
+
+int8_t BME_TEST(uint32_t timeout_ms)
+{
+    uint32_t elapsed = 0;
+
+    if (BME_Open(OSRS_2, OSRS_16, BME_NORMAL_MODE, T_SB1000, IIR_16) != E_BME_ERR_NONE)
+    {
+        return -1;
+    }
+
+    while (elapsed < timeout_ms)
+    {
+        BME_Measure();
+
+        float temperature = BME_GetTemperature();
+
+        if (temperature < -30.0f || temperature > 65.0f)
+        {
+            return -2;
+        }
+
+        osDelay(1000);
+        elapsed += 1000;
+    }
+
+    return 0;
+}
+
+#endif
+
+
+
+
+
 
 
 

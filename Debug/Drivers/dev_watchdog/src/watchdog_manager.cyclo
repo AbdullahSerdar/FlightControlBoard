@@ -1,0 +1,6 @@
+../Drivers/dev_watchdog/src/watchdog_manager.c:27:6:Watchdog_ReportBme	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:33:6:Watchdog_ReportGps	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:39:6:Watchdog_ReportMpu	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:45:6:Watchdog_ReportLora	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:51:9:Watchdog_AllTasksAlive	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:57:6:Watchdog_ClearFlags	1

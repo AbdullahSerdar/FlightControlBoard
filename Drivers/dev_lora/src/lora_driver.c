@@ -8,6 +8,18 @@
 #include "lora_driver.h"
 #include "cmsis_os.h"
 
+static Lora_ErrorCode Lora_MapHalStatus(HAL_StatusTypeDef status)
+{
+    switch (status)
+    {
+        case HAL_OK:      return E_LORA_ERR_NONE;
+        case HAL_BUSY:    return E_LORA_ERR_BUSY;
+        case HAL_TIMEOUT: return E_LORA_ERR_TIMEOUT;
+        case HAL_ERROR:   return E_LORA_ERR_HAL;
+        default:          return E_LORA_ERR_UNKNOWN;
+    }
+}
+
 Lora_ErrorCode Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t reg1, uint8_t channel)
 {
     HAL_StatusTypeDef status;
@@ -29,7 +41,7 @@ Lora_ErrorCode Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t
     configPacket[7] = channel;
 
     status = HAL_UART_Transmit(LORA_TRANSMIT, configPacket, sizeof(configPacket), 1000);
-    if(status != HAL_OK) { return E_LORA_ERR_HAL; }
+    if(status != HAL_OK) { return Lora_MapHalStatus(status); }
 
     osDelay(100);
 
@@ -43,10 +55,13 @@ Lora_ErrorCode Lora_Init(uint8_t adressH, uint8_t adressL, uint8_t reg0, uint8_t
 
 Lora_ErrorCode LoRa_Transmit(LoRaPacket_t *packet)
 {
+    HAL_StatusTypeDef status;
+
     if (packet == NULL)
     {
         return E_LORA_ERR_NULL;
     }
 
-    return HAL_UART_Transmit(LORA_TRANSMIT, (uint8_t *)packet, sizeof(LoRaPacket_t), 100);
+    status = HAL_UART_Transmit(LORA_TRANSMIT, (uint8_t *)packet, sizeof(LoRaPacket_t), 100);
+    return Lora_MapHalStatus(status);
 }

@@ -12,6 +12,7 @@
 #include "nmea_parser.h"
 #include "telemetry_data.h"
 #include <string.h>
+#include "watchdog_manager.h"
 
 void StartGpsTask(void const * argument)
 {
@@ -25,6 +26,8 @@ void StartGpsTask(void const * argument)
         	Nmea_ParseGPGGA((uint8_t *)gps_line, strlen(gps_line));
             TelemetryData_UpdateGps(Gps_Datas());
         }
+
+        Watchdog_ReportGps();
 
         osDelay(100);
     }

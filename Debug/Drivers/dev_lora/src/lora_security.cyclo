@@ -1,0 +1,6 @@
+../Drivers/dev_lora/src/lora_security.c:30:17:LoraSecurity_FallbackRandom	1
+../Drivers/dev_lora/src/lora_security.c:42:6:LoraSecurity_Init	2
+../Drivers/dev_lora/src/lora_security.c:64:10:LoraSecurity_GetSessionId	1
+../Drivers/dev_lora/src/lora_security.c:69:10:LoraSecurity_NextSequence	2
+../Drivers/dev_lora/src/lora_security.c:79:10:LoraSecurity_Crc16Ccitt	5
+../Drivers/dev_lora/src/lora_security.c:107:10:LoraSecurity_AuthTag32	5

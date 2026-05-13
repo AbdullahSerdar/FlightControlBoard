@@ -11,6 +11,7 @@
 #include "main.h"
 #include <stdint.h>
 
+#define BME_TEST_ENABLE 		0
 
 extern I2C_HandleTypeDef hi2c2;
 
@@ -64,8 +65,11 @@ typedef enum {
 Bme_ErrorCodes BME_Open(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 void BME_Measure(void);
+
 float BME_GetAltitude(void);
 float BME_GetTemperature(void);
+
+int8_t BME_TEST(uint32_t timeout);
 
 #endif /* INC_BME_DRIVER_H_ */
 

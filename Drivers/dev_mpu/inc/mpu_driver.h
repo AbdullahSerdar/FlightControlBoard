@@ -6,6 +6,8 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
+#define MPU_TEST_ENABLE 	  0
+
 #define MPU_I2C_PORT          (&hi2c1)
 #define MPU6050_ADRESS        0x68
 
@@ -45,5 +47,7 @@ void MPU_CalibrateGyro(uint16_t sample_count);
 void MPU_UpdateAngles(float dt);
 
 mpu_degree MPU_GetDegree(void);
+
+int8_t MPU_TEST(uint32_t timeout);
 
 #endif /* INC_IMU_DRIVER_H_ */

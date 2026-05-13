@@ -13,6 +13,7 @@ RM := rm -rf
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
+-include Drivers/dev_watchdog/src/subdir.mk
 -include Drivers/dev_mpu/src/subdir.mk
 -include Drivers/dev_lora/src/subdir.mk
 -include Drivers/dev_gps/src/subdir.mk

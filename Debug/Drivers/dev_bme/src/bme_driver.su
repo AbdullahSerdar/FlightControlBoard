@@ -1,8 +1,8 @@
-../Drivers/dev_bme/src/bme_driver.c:33:12:read_trim_values	32	static
-../Drivers/dev_bme/src/bme_driver.c:60:12:read_raw_data	32	static
-../Drivers/dev_bme/src/bme_driver.c:74:13:compansate_temp	24	static
-../Drivers/dev_bme/src/bme_driver.c:86:17:compensate_pressure	328	static
-../Drivers/dev_bme/src/bme_driver.c:110:16:BME_Open	48	static
-../Drivers/dev_bme/src/bme_driver.c:140:6:BME_Measure	8	static
-../Drivers/dev_bme/src/bme_driver.c:170:7:BME_GetAltitude	8	static
-../Drivers/dev_bme/src/bme_driver.c:175:7:BME_GetTemperature	8	static
+../Drivers/dev_bme/src/bme_driver.c:34:12:read_trim_values	32	static
+../Drivers/dev_bme/src/bme_driver.c:61:12:read_raw_data	32	static
+../Drivers/dev_bme/src/bme_driver.c:75:13:compansate_temp	24	static
+../Drivers/dev_bme/src/bme_driver.c:87:17:compensate_pressure	328	static
+../Drivers/dev_bme/src/bme_driver.c:111:16:BME_Open	48	static
+../Drivers/dev_bme/src/bme_driver.c:141:6:BME_Measure	8	static
+../Drivers/dev_bme/src/bme_driver.c:171:7:BME_GetAltitude	8	static
+../Drivers/dev_bme/src/bme_driver.c:176:7:BME_GetTemperature	8	static

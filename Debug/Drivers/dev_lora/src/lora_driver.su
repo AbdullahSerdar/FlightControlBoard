@@ -1,2 +1,3 @@
-../Drivers/dev_lora/src/lora_driver.c:11:16:Lora_Init	40	static
-../Drivers/dev_lora/src/lora_driver.c:44:16:LoRa_Transmit	16	static
+../Drivers/dev_lora/src/lora_driver.c:11:23:Lora_MapHalStatus	16	static
+../Drivers/dev_lora/src/lora_driver.c:23:16:Lora_Init	40	static
+../Drivers/dev_lora/src/lora_driver.c:56:16:LoRa_Transmit	24	static

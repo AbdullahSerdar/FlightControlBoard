@@ -29,8 +29,8 @@ MPU_ErrorCodes MPU_config(uint8_t pwr_mgmt, uint8_t config, uint8_t gyro, uint8_
                      I2C_MEMADD_SIZE_8BIT,
 					 &who_I,
                      1,
-                     HAL_MAX_DELAY);
-    osDelay(50);
+                     100);
+
     if(who_I != MPU6050_CHIP_ID){ return E_MPU_ERR_WRONG_ID; }
 
     status = HAL_I2C_Mem_Write(MPU_I2C_PORT,
@@ -172,3 +172,75 @@ mpu_degree MPU_GetDegree(void)
 {
     return degree_mpu;
 }
+
+
+#if MPU_TEST_ENABLE
+
+int8_t MPU_TEST(uint32_t timeout_ms)
+{
+	uint32_t elapsed = 0;
+
+    if(MPU_config(0x09, 0x03, 0x08, 0x08) != E_MPU_ERR_NONE)
+    {
+    	return -1;
+    }
+
+    osDelay(500);
+    MPU_CalibrateGyro(500);
+
+    while(elapsed < timeout_ms)
+    {
+		if(MPU_ReadRaw() == E_MPU_ERR_NONE)
+		{
+			MPU_UpdateAngles(0.01f);
+			osDelay(10);
+
+			mpu_degree degree = {0, 0};
+			degree = MPU_GetDegree();
+
+			if(degree.angle_pitch < -90.0f || degree.angle_pitch > 90.0f)
+			{
+				return -3;
+			}
+
+			if(degree.angle_roll < -180.0f || degree.angle_roll > 180.0f)
+			{
+				return -4;
+			}
+
+		}
+		else
+		{
+			return -2;
+		}
+
+		osDelay(1000);
+		elapsed += 1000;
+    }
+
+    return 0;
+}
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
