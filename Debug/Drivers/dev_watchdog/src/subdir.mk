@@ -5,16 +5,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/dev_watchdog/src/watchdog_manager.c \
-../Drivers/dev_watchdog/src/watchdog_task.c 
+../Drivers/dev_watchdog/src/watchdog_manager.c 
 
 OBJS += \
-./Drivers/dev_watchdog/src/watchdog_manager.o \
-./Drivers/dev_watchdog/src/watchdog_task.o 
+./Drivers/dev_watchdog/src/watchdog_manager.o 
 
 C_DEPS += \
-./Drivers/dev_watchdog/src/watchdog_manager.d \
-./Drivers/dev_watchdog/src/watchdog_task.d 
+./Drivers/dev_watchdog/src/watchdog_manager.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +21,7 @@ Drivers/dev_watchdog/src/%.o Drivers/dev_watchdog/src/%.su Drivers/dev_watchdog/
 clean: clean-Drivers-2f-dev_watchdog-2f-src
 
 clean-Drivers-2f-dev_watchdog-2f-src:
-	-$(RM) ./Drivers/dev_watchdog/src/watchdog_manager.cyclo ./Drivers/dev_watchdog/src/watchdog_manager.d ./Drivers/dev_watchdog/src/watchdog_manager.o ./Drivers/dev_watchdog/src/watchdog_manager.su ./Drivers/dev_watchdog/src/watchdog_task.cyclo ./Drivers/dev_watchdog/src/watchdog_task.d ./Drivers/dev_watchdog/src/watchdog_task.o ./Drivers/dev_watchdog/src/watchdog_task.su
+	-$(RM) ./Drivers/dev_watchdog/src/watchdog_manager.cyclo ./Drivers/dev_watchdog/src/watchdog_manager.d ./Drivers/dev_watchdog/src/watchdog_manager.o ./Drivers/dev_watchdog/src/watchdog_manager.su
 
 .PHONY: clean-Drivers-2f-dev_watchdog-2f-src
 

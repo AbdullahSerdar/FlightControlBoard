@@ -7,19 +7,16 @@
 C_SRCS += \
 ../Drivers/dev_lora/src/lora_driver.c \
 ../Drivers/dev_lora/src/lora_security.c \
-../Drivers/dev_lora/src/lora_task.c \
 ../Drivers/dev_lora/src/telemetry_data.c 
 
 OBJS += \
 ./Drivers/dev_lora/src/lora_driver.o \
 ./Drivers/dev_lora/src/lora_security.o \
-./Drivers/dev_lora/src/lora_task.o \
 ./Drivers/dev_lora/src/telemetry_data.o 
 
 C_DEPS += \
 ./Drivers/dev_lora/src/lora_driver.d \
 ./Drivers/dev_lora/src/lora_security.d \
-./Drivers/dev_lora/src/lora_task.d \
 ./Drivers/dev_lora/src/telemetry_data.d 
 
 
@@ -30,7 +27,7 @@ Drivers/dev_lora/src/%.o Drivers/dev_lora/src/%.su Drivers/dev_lora/src/%.cyclo:
 clean: clean-Drivers-2f-dev_lora-2f-src
 
 clean-Drivers-2f-dev_lora-2f-src:
-	-$(RM) ./Drivers/dev_lora/src/lora_driver.cyclo ./Drivers/dev_lora/src/lora_driver.d ./Drivers/dev_lora/src/lora_driver.o ./Drivers/dev_lora/src/lora_driver.su ./Drivers/dev_lora/src/lora_security.cyclo ./Drivers/dev_lora/src/lora_security.d ./Drivers/dev_lora/src/lora_security.o ./Drivers/dev_lora/src/lora_security.su ./Drivers/dev_lora/src/lora_task.cyclo ./Drivers/dev_lora/src/lora_task.d ./Drivers/dev_lora/src/lora_task.o ./Drivers/dev_lora/src/lora_task.su ./Drivers/dev_lora/src/telemetry_data.cyclo ./Drivers/dev_lora/src/telemetry_data.d ./Drivers/dev_lora/src/telemetry_data.o ./Drivers/dev_lora/src/telemetry_data.su
+	-$(RM) ./Drivers/dev_lora/src/lora_driver.cyclo ./Drivers/dev_lora/src/lora_driver.d ./Drivers/dev_lora/src/lora_driver.o ./Drivers/dev_lora/src/lora_driver.su ./Drivers/dev_lora/src/lora_security.cyclo ./Drivers/dev_lora/src/lora_security.d ./Drivers/dev_lora/src/lora_security.o ./Drivers/dev_lora/src/lora_security.su ./Drivers/dev_lora/src/telemetry_data.cyclo ./Drivers/dev_lora/src/telemetry_data.d ./Drivers/dev_lora/src/telemetry_data.o ./Drivers/dev_lora/src/telemetry_data.su
 
 .PHONY: clean-Drivers-2f-dev_lora-2f-src
 

@@ -5,16 +5,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/dev_mpu/src/mpu_driver.c \
-../Drivers/dev_mpu/src/mpu_task.c 
+../Drivers/dev_mpu/src/mpu_driver.c 
 
 OBJS += \
-./Drivers/dev_mpu/src/mpu_driver.o \
-./Drivers/dev_mpu/src/mpu_task.o 
+./Drivers/dev_mpu/src/mpu_driver.o 
 
 C_DEPS += \
-./Drivers/dev_mpu/src/mpu_driver.d \
-./Drivers/dev_mpu/src/mpu_task.d 
+./Drivers/dev_mpu/src/mpu_driver.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +21,7 @@ Drivers/dev_mpu/src/%.o Drivers/dev_mpu/src/%.su Drivers/dev_mpu/src/%.cyclo: ..
 clean: clean-Drivers-2f-dev_mpu-2f-src
 
 clean-Drivers-2f-dev_mpu-2f-src:
-	-$(RM) ./Drivers/dev_mpu/src/mpu_driver.cyclo ./Drivers/dev_mpu/src/mpu_driver.d ./Drivers/dev_mpu/src/mpu_driver.o ./Drivers/dev_mpu/src/mpu_driver.su ./Drivers/dev_mpu/src/mpu_task.cyclo ./Drivers/dev_mpu/src/mpu_task.d ./Drivers/dev_mpu/src/mpu_task.o ./Drivers/dev_mpu/src/mpu_task.su
+	-$(RM) ./Drivers/dev_mpu/src/mpu_driver.cyclo ./Drivers/dev_mpu/src/mpu_driver.d ./Drivers/dev_mpu/src/mpu_driver.o ./Drivers/dev_mpu/src/mpu_driver.su
 
 .PHONY: clean-Drivers-2f-dev_mpu-2f-src
 

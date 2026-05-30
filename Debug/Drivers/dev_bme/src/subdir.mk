@@ -5,16 +5,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/dev_bme/src/bme_driver.c \
-../Drivers/dev_bme/src/bme_task.c 
+../Drivers/dev_bme/src/bme_driver.c 
 
 OBJS += \
-./Drivers/dev_bme/src/bme_driver.o \
-./Drivers/dev_bme/src/bme_task.o 
+./Drivers/dev_bme/src/bme_driver.o 
 
 C_DEPS += \
-./Drivers/dev_bme/src/bme_driver.d \
-./Drivers/dev_bme/src/bme_task.d 
+./Drivers/dev_bme/src/bme_driver.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +21,7 @@ Drivers/dev_bme/src/%.o Drivers/dev_bme/src/%.su Drivers/dev_bme/src/%.cyclo: ..
 clean: clean-Drivers-2f-dev_bme-2f-src
 
 clean-Drivers-2f-dev_bme-2f-src:
-	-$(RM) ./Drivers/dev_bme/src/bme_driver.cyclo ./Drivers/dev_bme/src/bme_driver.d ./Drivers/dev_bme/src/bme_driver.o ./Drivers/dev_bme/src/bme_driver.su ./Drivers/dev_bme/src/bme_task.cyclo ./Drivers/dev_bme/src/bme_task.d ./Drivers/dev_bme/src/bme_task.o ./Drivers/dev_bme/src/bme_task.su
+	-$(RM) ./Drivers/dev_bme/src/bme_driver.cyclo ./Drivers/dev_bme/src/bme_driver.d ./Drivers/dev_bme/src/bme_driver.o ./Drivers/dev_bme/src/bme_driver.su
 
 .PHONY: clean-Drivers-2f-dev_bme-2f-src
 

@@ -13,31 +13,83 @@
 
 #define ALTITUDE(press)   	(44330.0 * (1.0 - pow( (press) / 101325.0 , 0.1903)))
 
-static void compansate_temp(int32_t adc_T);
-static uint32_t compensate_pressure(int32_t adc_P);
-static int read_trim_values();
-static int read_raw_data();
+typedef struct {
+	I2C_HandleTypeDef *hi2c;
+	uint8_t i2c_addr_7bit;
+	BME_State_t state;
+
+	BME_Config_t config;
+	BME_Data_t last_data;
+} BME_Context_t;
+
+static BME_Context_t g_bme = {0};
 
 //int32_t T;
 static int32_t t_fine;
-static double altitude;
 static double temperature_c;
-static int32_t adc_p;
-static int32_t adc_t;
 
-static uint8_t trim_prmt[24];
 static uint16_t dig_P1;
 static int16_t dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
 static uint16_t dig_T1;
 static int16_t dig_T2, dig_T3;
 
-static int read_trim_values()
+/* BME I2C OKUMA YAZMA KISIMLARI*/
+static uint16_t BME_DevAddr8(void)
 {
-	HAL_StatusTypeDef status;
-	status = HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CONST, I2C_MEMADD_SIZE_8BIT, trim_prmt, 24, 1000);
+    return (uint16_t)(g_bme.i2c_addr_7bit << 1U);
+}
 
-	if(status != HAL_OK)
+static BME_ErrorCode_t BME_WriteRegister(uint8_t reg, const uint8_t *data, uint16_t len)
+{
+    if ((g_bme.hi2c == NULL) || (data == NULL) || (len == 0U))
+    {
+        return E_BME_ERR_INVALID_PARAM;
+    }
+
+    if (HAL_I2C_Mem_Write(g_bme.hi2c,
+                          BME_DevAddr8(),
+                          reg,
+                          I2C_MEMADD_SIZE_8BIT,
+						  (uint8_t *)data,
+                          len,
+                          1000U) != HAL_OK)
+    {
+        return E_BME_ERR_HAL;
+    }
+
+    return E_BME_ERR_NONE;
+}
+
+static BME_ErrorCode_t BME_ReadRegister(uint8_t reg, uint8_t *data, uint16_t len)
+{
+    if ((g_bme.hi2c == NULL) || (data == NULL) || (len == 0U))
+    {
+        return E_BME_ERR_INVALID_PARAM;
+    }
+
+    if (HAL_I2C_Mem_Read(g_bme.hi2c,
+                         BME_DevAddr8(),
+                         reg,
+                         I2C_MEMADD_SIZE_8BIT,
+                         data,
+                         len,
+                         1000U) != HAL_OK)
+    {
+        return E_BME_ERR_HAL;
+    }
+
+    return E_BME_ERR_NONE;
+}
+
+/* TRIM DEGERLERİNİN OKUNMASI*/
+static BME_ErrorCode_t read_trim_values()
+{
+	BME_ErrorCode_t err;
+	static uint8_t trim_prmt[24];
+	err = BME_ReadRegister(BME_CONST, trim_prmt, 24);
+
+	if(err != E_BME_ERR_NONE)
 	{
 		return E_BME_ERR_HAL;
 	}
@@ -59,21 +111,124 @@ static int read_trim_values()
 	return E_BME_ERR_NONE;
 }
 
-static int read_raw_data()
+/* BME OPEN YAPISININ FONKSİYONLARI*/
+static BME_ErrorCode_t BME_ApplyConfig(const BME_Config_t *config)
 {
-	HAL_StatusTypeDef status;
-	uint8_t raw_sensor_data[6];
-	status = HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_PRESS_DATA, I2C_MEMADD_SIZE_8BIT, raw_sensor_data, 6, 1000);
+	BME_ErrorCode_t err;
+	uint8_t datawrite = 0;
 
-	if (status != HAL_OK){ return status; }
+	if(config == NULL)
+	{
+		return E_BME_ERR_INVALID_PARAM;
+	}
 
-	adc_p = ((uint32_t)raw_sensor_data[0] << 12) | ((uint32_t)raw_sensor_data[1] << 4) | ((uint32_t)raw_sensor_data[2] >> 4);
-	adc_t = ((int32_t)raw_sensor_data[3] << 12) | ((int32_t)raw_sensor_data[4] << 4) | ((int32_t)raw_sensor_data[5] >> 4);
+//	datawrite = config->reset_val;
+//	err = BME_WriteRegister(BME_RESET, &datawrite, 1U);
+//	if (err != E_BME_ERR_NONE) { return err; }
+//	osDelay(50);
 
-	return HAL_OK;
+	if(read_trim_values() != E_BME_ERR_NONE)
+	{
+		return E_BME_ERR_HAL;
+	}
+
+	datawrite = (config->t_sb << 5) | (config->filter << 2);
+	err = BME_WriteRegister(BME_CONFIG, &datawrite, 1U);
+	if (err != E_BME_ERR_NONE) { return err; }
+	osDelay(20);
+
+	datawrite = (config->osrs_t << 5) | (config->osrs_p << 2) | config->mode;
+	err = BME_WriteRegister(BME_CTRL_MEAS, &datawrite, 1U);
+	if (err != E_BME_ERR_NONE) { return err; }
+	osDelay(20);
+
+	g_bme.config = *config;
+	return E_BME_ERR_NONE;
 }
 
-static void compansate_temp(int32_t adc_T)
+static BME_ErrorCode_t BME_HardwareInit(const BME_OpenConfig_t *open_config)
+{
+	uint8_t chip_id = 0U;
+	BME_Config_t config;
+	BME_ErrorCode_t err;
+
+	g_bme.hi2c = open_config->hi2c;
+	g_bme.i2c_addr_7bit = open_config->i2c_addr_7bit;
+
+	err = BME_ReadRegister(BME_CHIP_ID_REGISTER, &chip_id, 1U);
+	if(err != E_BME_ERR_NONE)
+	{
+		return err;
+	}
+
+	if(chip_id != BME_CHIP_ID)
+	{
+		return E_BME_ERR_WRONG_ID;
+	}
+
+	config.filter    = open_config->filter;
+	config.mode      = open_config->mode;
+	config.osrs_p    = open_config->osrs_p;
+	config.osrs_t    = open_config->osrs_t;
+	config.reset_val = open_config->reset_val;
+	config.t_sb      = open_config->t_sb;
+
+	err = BME_ApplyConfig(&config);
+    if (err != E_BME_ERR_NONE)
+    {
+        return err;
+    }
+
+    return E_BME_ERR_NONE;
+}
+
+BME_ErrorCode_t BME_Open(void *vpParam)
+{
+	BME_OpenConfig_t default_config;
+	BME_OpenConfig_t *open_config;
+	BME_ErrorCode_t err;
+
+	if(g_bme.state == BME_STATE_OPEN)
+	{
+		return E_BME_ERR_ALREADY_OPEN;
+	}
+
+	if(vpParam == NULL)
+	{
+		default_config.hi2c = BME_TRANSFER_PORT;
+		default_config.i2c_addr_7bit = BME_ADRESS;
+		default_config.filter = IIR_16;
+		default_config.mode = BME_NORMAL_MODE;
+		default_config.osrs_p = OSRS_16;
+		default_config.osrs_t = OSRS_2;
+		default_config.reset_val = 0xB6;
+		default_config.t_sb = T_SB1000;
+		open_config = &default_config;
+	}
+	else
+	{
+		open_config = (BME_OpenConfig_t *)vpParam;
+	}
+
+    if ((open_config->hi2c == NULL) || (open_config->i2c_addr_7bit == 0U))
+    {
+        return E_BME_ERR_INVALID_PARAM;
+    }
+
+    err = BME_HardwareInit(open_config);
+    if (err != E_BME_ERR_NONE)
+    {
+        g_bme.state = BME_STATE_CLOSED;
+        return err;
+    }
+
+    g_bme.state = BME_STATE_OPEN;
+    return E_BME_ERR_NONE;
+}
+
+
+/* BME READ FONKSIYONLARI */
+static float compansate_temp(int32_t adc_T)
 {
 	int32_t var1, var2;
     var1 = ((((adc_T >> 3) - ((int32_t)dig_T1 << 1))) * ((int32_t)dig_T2)) >> 11;
@@ -81,8 +236,8 @@ static void compansate_temp(int32_t adc_T)
 
     t_fine = var1 + var2;
 //    T = (t_fine * 5 + 128) >> 8;
-    temperature_c = (float)(((t_fine * 5 + 128) >> 8) / 100.0);
-//    return T;
+    temperature_c = (double)(((t_fine * 5 + 128) >> 8) / 100.0);
+    return temperature_c;
 }
 
 static uint32_t compensate_pressure(int32_t adc_P)
@@ -109,107 +264,156 @@ static uint32_t compensate_pressure(int32_t adc_P)
     return (uint32_t)p;
 }
 
-Bme_ErrorCodes BME_Open(uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter)
+BME_ErrorCode_t BME_Read(void *pvBuffer, uint32_t xBytes)
 {
-    HAL_StatusTypeDef status;
+	uint8_t raw[6];
+	BME_Data_t *out_data;
+	BME_ErrorCode_t err;
 
-    uint8_t chip_id;
-	HAL_I2C_Mem_Read(BME_TRANSFER_PORT, BME_ADRESS << 1, BMECHIP_ID_REGISTER, I2C_MEMADD_SIZE_8BIT, &chip_id, 1, 1000);
-	osDelay(50);
-	if(chip_id != BME_CHIP_ID) { return E_BME_ERR_WRONG_ID; }
-
-    uint8_t reset_val = 0xB6;
-    HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_RESET, I2C_MEMADD_SIZE_8BIT, &reset_val, 1, 100);
-    osDelay(10);
-
-    if (read_trim_values() != E_BME_ERR_NONE) { return E_BME_ERR_HAL; }
-
-    uint8_t dataowrite = (t_sb << 5) | (filter << 2);
-    status = HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CONFIG,
-                                I2C_MEMADD_SIZE_8BIT, &dataowrite, 1, 100);
-    if (status != HAL_OK) { return E_BME_ERR_HAL; }
-    osDelay(10);
-
-    dataowrite = (osrs_t << 5) | (osrs_p << 2) | mode;
-    status = HAL_I2C_Mem_Write(BME_TRANSFER_PORT, BME_ADRESS << 1, BME_CTRL_MEAS,
-                                I2C_MEMADD_SIZE_8BIT, &dataowrite, 1, 100);
-    if (status != HAL_OK) { return E_BME_ERR_HAL; }
-    osDelay(10);
-
-    return E_BME_ERR_NONE;
-}
-
-void BME_Measure()
-{
-	if(!read_raw_data())
+	if(g_bme.state != BME_STATE_OPEN)
 	{
-		if(adc_t == 0x800000)
-        {
-			altitude = 0;
-            temperature_c = 0;
-        }
-		else
-        {
-			compansate_temp(adc_t);
-        }
+		return E_BME_ERR_NOT_OPEN;
+	}
 
-        if (adc_p == 0x800000)
-        	altitude = 0;
-        else
-        {
-        	 altitude = ALTITUDE(((compensate_pressure(adc_p)) / 256.0f));
-        }
+    if ((pvBuffer == NULL) || (xBytes < sizeof(BME_Data_t)))
+    {
+        return E_BME_ERR_INVALID_PARAM;
+    }
 
+    out_data = (BME_Data_t *)pvBuffer;
+
+    err = BME_ReadRegister(BME_PRESS_DATA, raw, 6);
+    if(err != E_BME_ERR_NONE)
+    {
+    	return err;
+    }
+
+    out_data->adc_p = ((uint32_t)raw[0] << 12) | ((uint32_t)raw[1] << 4) | ((uint32_t)raw[2] >> 4);
+	out_data->adc_t = ((int32_t)raw[3] << 12) | ((int32_t)raw[4] << 4) | ((int32_t)raw[5] >> 4);
+
+	if(out_data->adc_t == 0x800000)
+	{
+		out_data->altitude      = 0;
+		out_data->temperature_c = 0;
 	}
 	else
 	{
-		altitude  = 0;
-        temperature_c = 0;
+		out_data->temperature_c = compansate_temp(out_data->adc_t);
 	}
 
+	if(out_data->adc_p == 0x800000)
+	{
+		out_data->altitude = 0;
+	}
+	else
+	{
+		out_data->altitude = ALTITUDE(((compensate_pressure(out_data->adc_p)) / 256.0f));
+	}
+
+	g_bme.last_data = *out_data;
+	return E_BME_ERR_NONE;
 }
 
-float BME_GetAltitude(void)
+BME_ErrorCode_t BME_Ioctl(BME_IoctlCommand_t command, void *vpParam)
 {
-    return (float)altitude;
+	uint8_t chip_id;
+	BME_ErrorCode_t err;
+
+	if(g_bme.state != BME_STATE_OPEN)
+	{
+		return E_BME_ERR_NOT_OPEN;
+	}
+
+	switch(command)
+	{
+	case E_BME_IOCTL_GET_CHIP_ID:
+		if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+		err = BME_ReadRegister(BME_CHIP_ID_REGISTER, &chip_id, 1U);
+		if (err != E_BME_ERR_NONE) { return err; }
+		*(uint8_t *)vpParam = chip_id;
+		return E_BME_ERR_NONE;
+
+	case E_BME_IOCTL_RESET:
+		if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+		err = BME_WriteRegister(BME_RESET, &g_bme.config.reset_val, 1U);
+		if (err != E_BME_ERR_NONE) { return err; }
+		osDelay(50);
+		return BME_ApplyConfig(&g_bme.config);
+
+	case E_BME_IOCTL_GET_STATUS:
+		if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+		*(BME_State_t *)vpParam = g_bme.state;
+		return E_BME_ERR_NONE;
+
+	case E_BME_IOCTL_SET_CONFIG:
+		if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+		return BME_ApplyConfig((const BME_Config_t *)vpParam);
+
+	case E_BME_IOCTL_GET_ALTITUDE:
+	    if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+	    *(double *)vpParam = g_bme.last_data.altitude;
+	    return E_BME_ERR_NONE;
+
+	case E_BME_IOCTL_GET_TEMP:
+	    if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+	    *(double *)vpParam = g_bme.last_data.temperature_c;
+	    return E_BME_ERR_NONE;
+
+	case E_BME_IOCTL_GET_TRIM:
+		if (vpParam == NULL) { return E_BME_ERR_INVALID_PARAM; }
+		return read_trim_values();
+
+	case E_BME_IOCTL_CALIBRATE:
+		return E_BME_ERR_NONE;
+
+	default:
+		return E_BME_ERR_UNSUPPORTED;
+	}
 }
 
-float BME_GetTemperature(void)
+BME_ErrorCode_t BME_Write(const void *pvBuffer, uint32_t xBytes)
 {
-    return (float)temperature_c;
-}
+    const BME_RegisterWrite_t *write_request;
 
-
-#if BME_TEST_ENABLE
-
-int8_t BME_TEST(uint32_t timeout_ms)
-{
-    uint32_t elapsed = 0;
-
-    if (BME_Open(OSRS_2, OSRS_16, BME_NORMAL_MODE, T_SB1000, IIR_16) != E_BME_ERR_NONE)
+    if (g_bme.state != BME_STATE_OPEN)
     {
-        return -1;
+        return E_BME_ERR_NOT_OPEN;
     }
 
-    while (elapsed < timeout_ms)
+    if ((pvBuffer == NULL) || (xBytes != sizeof(BME_RegisterWrite_t)))
     {
-        BME_Measure();
-
-        float temperature = BME_GetTemperature();
-
-        if (temperature < -30.0f || temperature > 65.0f)
-        {
-            return -2;
-        }
-
-        osDelay(1000);
-        elapsed += 1000;
+        return E_BME_ERR_INVALID_PARAM;
     }
 
-    return 0;
+    write_request = (const BME_RegisterWrite_t *)pvBuffer;
+    return BME_WriteRegister(write_request->reg, write_request->data, write_request->len);
 }
 
-#endif
+BME_ErrorCode_t BME_Close(void *vpParam)
+{
+	(void)vpParam;
+	BME_ErrorCode_t err;
+	uint8_t datawrite;
+
+	if(g_bme.state != BME_STATE_OPEN)
+	{
+		return E_BME_ERR_NOT_OPEN;
+	}
+
+	datawrite = (g_bme.config.osrs_t << 5) | (g_bme.config.osrs_p << 2) | BME_SLEEP_MODE;
+	err = BME_WriteRegister(BME_CTRL_MEAS, &datawrite, 1U);
+
+	if (err != E_BME_ERR_NONE)
+	{
+	    return err;
+	}
+
+	g_bme.state = BME_STATE_CLOSED;
+	g_bme.hi2c  = NULL;
+
+	return E_BME_ERR_NONE;
+}
+
 
 
 
