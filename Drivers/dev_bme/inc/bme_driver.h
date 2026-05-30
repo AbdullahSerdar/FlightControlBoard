@@ -11,12 +11,9 @@
 #include "main.h"
 #include <stdint.h>
 
-#define BME_TEST_ENABLE 		0
-
-extern I2C_HandleTypeDef hi2c2;
+#define BME_TEST_ENABLE  s0
 
 #define BME_CHIP_ID 		0x60
-#define BME_TRANSFER_PORT   (&hi2c2)
 
 #define BME_RESET		     0xE0
 #define BMECHIP_ID_REGISTER  0xD0

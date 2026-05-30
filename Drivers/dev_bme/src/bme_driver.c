@@ -9,6 +9,7 @@
 #include <math.h>
 #include <cmsis_os.h>
 #include <stdio.h>
+#include "bme_hal.h"
 
 #define ALTITUDE(press)   	(44330.0 * (1.0 - pow( (press) / 101325.0 , 0.1903)))
 

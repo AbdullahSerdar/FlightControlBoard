@@ -39,15 +39,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_rnglists 00001332  00000000  00000000  000433a8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_macro  000275e4  00000000  00000000  000446da  2**0
+ 18 .debug_macro  000275f7  00000000  00000000  000446da  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_line   00023b9d  00000000  00000000  0006bcbe  2**0
+ 19 .debug_line   00023ba8  00000000  00000000  0006bcd1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_str    000daa47  00000000  00000000  0008f85b  2**0
+ 20 .debug_str    000daa60  00000000  00000000  0008f879  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_frame  00007c60  00000000  00000000  0016a2a4  2**2
+ 21 .debug_frame  00007c60  00000000  00000000  0016a2dc  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 22 .debug_line_str 0000006e  00000000  00000000  00171f04  2**0
+ 22 .debug_line_str 0000006e  00000000  00000000  00171f3c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -17218,7 +17218,6 @@ static uint32_t LoraSecurity_FallbackRandom(void)
  80070dc:	b580      	push	{r7, lr}
  80070de:	b082      	sub	sp, #8
  80070e0:	af00      	add	r7, sp, #0
-    /* Fallback only: not cryptographically strong. Used when HW RNG is absent. */
     uint32_t x = osKernelSysTick();
  80070e2:	f000 feea 	bl	8007eba <osKernelSysTick>
  80070e6:	4603      	mov	r3, r0
@@ -17464,7 +17463,6 @@ uint32_t LoraSecurity_AuthTag32(const uint8_t *data, uint16_t len)
  800723a:	6078      	str	r0, [r7, #4]
  800723c:	460b      	mov	r3, r1
  800723e:	807b      	strh	r3, [r7, #2]
-    /* Keyed FNV-1a style tag: lightweight authentication, not strong crypto. */
     uint32_t h = 2166136261UL;
  8007240:	4b28      	ldr	r3, [pc, #160]	; (80072e4 <LoraSecurity_AuthTag32+0xb0>)
  8007242:	617b      	str	r3, [r7, #20]
