@@ -1,0 +1,9 @@
+../Drivers/dev_gps/middleware/src/nmea_parser.c:14:16:Nmea_HexToNibble	7
+../Drivers/dev_gps/middleware/src/nmea_parser.c:22:16:Nmea_ChecksumIsValid	11
+../Drivers/dev_gps/middleware/src/nmea_parser.c:63:15:Nmea_ToDegrees	3
+../Drivers/dev_gps/middleware/src/nmea_parser.c:81:16:Nmea_GetField	19
+../Drivers/dev_gps/middleware/src/nmea_parser.c:134:16:Nmea_IsGgaSentence	7
+../Drivers/dev_gps/middleware/src/nmea_parser.c:149:25:Nmea_ParseGgaLine	14
+../Drivers/dev_gps/middleware/src/nmea_parser.c:201:6:Nmea_Reset	1
+../Drivers/dev_gps/middleware/src/nmea_parser.c:206:18:Nmea_ParseLine	5
+../Drivers/dev_gps/middleware/src/nmea_parser.c:226:17:Nmea_GetData	1

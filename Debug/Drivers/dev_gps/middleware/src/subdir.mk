@@ -5,23 +5,23 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/dev_gps/src/gps_driver.c 
+../Drivers/dev_gps/middleware/src/nmea_parser.c 
 
 OBJS += \
-./Drivers/dev_gps/src/gps_driver.o 
+./Drivers/dev_gps/middleware/src/nmea_parser.o 
 
 C_DEPS += \
-./Drivers/dev_gps/src/gps_driver.d 
+./Drivers/dev_gps/middleware/src/nmea_parser.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Drivers/dev_gps/src/%.o Drivers/dev_gps/src/%.su Drivers/dev_gps/src/%.cyclo: ../Drivers/dev_gps/src/%.c Drivers/dev_gps/src/subdir.mk
+Drivers/dev_gps/middleware/src/%.o Drivers/dev_gps/middleware/src/%.su Drivers/dev_gps/middleware/src/%.cyclo: ../Drivers/dev_gps/middleware/src/%.c Drivers/dev_gps/middleware/src/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F407xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_lora/inc" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_bme/inc" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_mpu/inc" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_gps/inc" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_watchdog/inc" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Tests" -I"C:/Users/serda/STM32CubeIDE/workspace_1.14.0/FlightControlBoard/Drivers/dev_gps/middleware/inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
-clean: clean-Drivers-2f-dev_gps-2f-src
+clean: clean-Drivers-2f-dev_gps-2f-middleware-2f-src
 
-clean-Drivers-2f-dev_gps-2f-src:
-	-$(RM) ./Drivers/dev_gps/src/gps_driver.cyclo ./Drivers/dev_gps/src/gps_driver.d ./Drivers/dev_gps/src/gps_driver.o ./Drivers/dev_gps/src/gps_driver.su
+clean-Drivers-2f-dev_gps-2f-middleware-2f-src:
+	-$(RM) ./Drivers/dev_gps/middleware/src/nmea_parser.cyclo ./Drivers/dev_gps/middleware/src/nmea_parser.d ./Drivers/dev_gps/middleware/src/nmea_parser.o ./Drivers/dev_gps/middleware/src/nmea_parser.su
 
-.PHONY: clean-Drivers-2f-dev_gps-2f-src
+.PHONY: clean-Drivers-2f-dev_gps-2f-middleware-2f-src
 

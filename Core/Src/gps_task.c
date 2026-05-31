@@ -6,28 +6,44 @@
  */
 
 #include "FreeRTOS.h"
-#include <cmsis_os.h>
+#include "cmsis_os.h"
 #include "gps_driver.h"
 #include "nmea_parser.h"
 #include "telemetry_data.h"
-#include <string.h>
 #include "watchdog_manager.h"
+#include <string.h>
 
 void StartGpsTask(void const * argument)
 {
-	char gps_line[128];
-	Gps_Open(NULL);
+    (void)argument;
 
-    for(;;)
+    GPS_NmeaLine_t gpsLine;
+    GpsParsedData_t gpsData;
+
+    while (Gps_Open(NULL) != E_GPS_ERR_NONE)
     {
-        while (Gps_ReadLine(gps_line, sizeof(gps_line)))
+        osDelay(500);
+    }
+
+    for (;;)
+    {
+
+        if (Gps_Read(&gpsLine, sizeof(gpsLine)) == E_GPS_ERR_NONE)
         {
-        	Nmea_ParseGPGGA((uint8_t *)gps_line, strlen(gps_line));
-            TelemetryData_UpdateGps(Gps_Datas());
+            if (Nmea_ParseLine(gpsLine.line, gpsLine.length) == E_NMEA_ERR_NONE)
+            {
+                gpsData = Nmea_GetData();
+
+                if (gpsData.is_valid)
+                {
+
+                    TelemetryData_UpdateGps(gpsData);
+
+                    Watchdog_ReportGps();
+                }
+            }
         }
 
-        Watchdog_ReportGps();
-
-        osDelay(100);
+        osDelay(20);
     }
 }

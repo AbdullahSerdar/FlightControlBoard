@@ -17,6 +17,7 @@ RM := rm -rf
 -include Drivers/dev_mpu/src/subdir.mk
 -include Drivers/dev_lora/src/subdir.mk
 -include Drivers/dev_gps/src/subdir.mk
+-include Drivers/dev_gps/middleware/src/subdir.mk
 -include Drivers/dev_bme/src/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
