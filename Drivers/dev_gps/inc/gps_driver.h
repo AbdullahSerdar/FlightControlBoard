@@ -1,7 +1,7 @@
 #ifndef INC_GPS_DRIVER_H_
 #define INC_GPS_DRIVER_H_
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
 #include "gps_hal.h"
 #include <stdint.h>
 
@@ -46,6 +46,7 @@ typedef struct
 } GPS_NmeaLine_t;
 
 void Gps_RxCallback(UART_HandleTypeDef *huart, uint16_t Size);
+void Gps_RxErrorCallback(UART_HandleTypeDef *huart);
 
 GPSErrorCodes_t Gps_Open(void *vpParam);
 GPSErrorCodes_t Gps_Read(void *pvBuffer, uint32_t xBytes);

@@ -114,16 +114,6 @@ static uint8_t GPS_RingReadByte(uint8_t *byte)
     return 1U;
 }
 
-/*
- * Reads one complete NMEA sentence from the ring buffer.
- *
- * Accepted sentence format:
- *   $.....\r\n
- *   $.....\n
- *   $.....\r
- *
- * Returned line is always null-terminated.
- */
 static uint8_t GPS_InternalReadLine(char *line, uint16_t max_len, uint16_t *out_len)
 {
     static uint16_t index = 0U;
@@ -194,6 +184,12 @@ void Gps_RxCallback(UART_HandleTypeDef *huart, uint16_t Size)
         return;
     }
 
+    if (Size == 0U)
+    {
+        (void)GPS_StartRx();
+        return;
+    }
+
     if (Size > GPS_RX_BUFFER_SIZE)
     {
         Size = GPS_RX_BUFFER_SIZE;
@@ -204,9 +200,22 @@ void Gps_RxCallback(UART_HandleTypeDef *huart, uint16_t Size)
         GPS_RingWriteByte(gps_rx_buf[i]);
     }
 
-    /*
-     * Restart ReceiveToIdle DMA after each event.
-     */
+    (void)GPS_StartRx();
+}
+
+void Gps_RxErrorCallback(UART_HandleTypeDef *huart)
+{
+    if ((g_gps.state != GPS_STATE_OPEN) || (huart != g_gps.huart))
+    {
+        return;
+    }
+
+    (void)HAL_UART_DMAStop(g_gps.huart);
+
+    __HAL_UART_CLEAR_OREFLAG(g_gps.huart);
+    __HAL_UART_CLEAR_FEFLAG(g_gps.huart);
+    __HAL_UART_CLEAR_NEFLAG(g_gps.huart);
+
     (void)GPS_StartRx();
 }
 

@@ -7,7 +7,7 @@
 
 #include "watchdog_manager.h"
 #include "cmsis_os.h"
-#include "main.h"
+#include "stm32f4xx_hal.h"
 
 extern IWDG_HandleTypeDef hiwdg;
 

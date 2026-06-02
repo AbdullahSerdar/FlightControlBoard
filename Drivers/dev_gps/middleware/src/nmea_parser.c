@@ -1,12 +1,3 @@
-/*
- * nmea_parser.c
- * NMEA middleware parser.
- *
- * Supports:
- *   - GGA: fix quality, satellites, altitude, latitude, longitude
- *   - RMC: fast latitude/longitude updates when GPS status is active
- */
-
 #include "nmea_parser.h"
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +57,7 @@ static uint8_t Nmea_ChecksumIsValid(const char *line, uint16_t length)
     }
 
     expected = (uint8_t)((high << 4U) | low);
+
     return (checksum == expected) ? 1U : 0U;
 }
 
@@ -81,14 +73,23 @@ static double Nmea_ToDegrees(const char *str)
     }
 
     raw = atof(str);
+
+    if (raw <= 0.0)
+    {
+        return 0.0;
+    }
+
     degrees = (int)(raw / 100.0);
     minutes = raw - ((double)degrees * 100.0);
 
     return (double)degrees + (minutes / 60.0);
 }
 
-static uint8_t Nmea_GetField(const char *src, uint16_t src_len, uint8_t field_idx,
-                             char *dst, uint8_t dst_size)
+static uint8_t Nmea_GetField(const char *src,
+                             uint16_t src_len,
+                             uint8_t field_idx,
+                             char *dst,
+                             uint8_t dst_size)
 {
     uint8_t field = 0U;
     uint8_t d = 0U;
@@ -170,26 +171,58 @@ static uint8_t Nmea_IsRmcSentence(const char *line)
             (line[6] == ',')) ? 1U : 0U;
 }
 
-static void Nmea_UpdateLatLon(GpsParsedData_t *parsed,
-                              const char *lat_field,
-                              const char *lat_dir,
-                              const char *lon_field,
-                              const char *lon_dir)
+static uint8_t Nmea_IsGllSentence(const char *line)
 {
+    if (line == NULL)
+    {
+        return 0U;
+    }
+
+    /* Supports $GPGLL, $GNGLL, $BDGLL etc. */
+    return ((line[0] == '$') &&
+            (line[3] == 'G') &&
+            (line[4] == 'L') &&
+            (line[5] == 'L') &&
+            (line[6] == ',')) ? 1U : 0U;
+}
+
+static uint8_t Nmea_UpdateLatLon(GpsParsedData_t *parsed,
+                                 const char *lat_field,
+                                 const char *lat_dir,
+                                 const char *lon_field,
+                                 const char *lon_dir)
+{
+    double latitude;
+    double longitude;
+
     if ((parsed == NULL) || (lat_field == NULL) || (lat_dir == NULL) ||
         (lon_field == NULL) || (lon_dir == NULL))
     {
-        return;
+        return 0U;
     }
 
-    if ((lat_field[0] != '\0') && (lon_field[0] != '\0'))
+    if ((lat_field[0] == '\0') || (lon_field[0] == '\0') ||
+        (lat_dir[0] == '\0') || (lon_dir[0] == '\0'))
     {
-        parsed->latitude = Nmea_ToDegrees(lat_field);
-        parsed->longitude = Nmea_ToDegrees(lon_field);
-
-        if (lat_dir[0] == 'S') { parsed->latitude = -parsed->latitude; }
-        if (lon_dir[0] == 'W') { parsed->longitude = -parsed->longitude; }
+        return 0U;
     }
+
+    latitude = Nmea_ToDegrees(lat_field);
+    longitude = Nmea_ToDegrees(lon_field);
+
+    if ((latitude == 0.0) || (longitude == 0.0))
+    {
+        return 0U;
+    }
+
+    if (lat_dir[0] == 'S') { latitude = -latitude; }
+    if (lon_dir[0] == 'W') { longitude = -longitude; }
+
+    parsed->latitude = latitude;
+    parsed->longitude = longitude;
+    parsed->is_valid = 1U;
+
+    return 1U;
 }
 
 static NMEA_ErrorCode_t Nmea_ParseGgaLine(const char *line, uint16_t length)
@@ -211,7 +244,7 @@ static NMEA_ErrorCode_t Nmea_ParseGgaLine(const char *line, uint16_t length)
         Nmea_GetField(line, length, 4U, lon_field, sizeof(lon_field)) &&
         Nmea_GetField(line, length, 5U, lon_dir, sizeof(lon_dir)))
     {
-        Nmea_UpdateLatLon(&parsed, lat_field, lat_dir, lon_field, lon_dir);
+        (void)Nmea_UpdateLatLon(&parsed, lat_field, lat_dir, lon_field, lon_dir);
     }
 
     if (Nmea_GetField(line, length, 6U, field, sizeof(field)))
@@ -232,9 +265,14 @@ static NMEA_ErrorCode_t Nmea_ParseGgaLine(const char *line, uint16_t length)
         }
     }
 
-    parsed.is_valid = ((parsed.fix_quality > 0U) &&
-                       (parsed.latitude != 0.0) &&
-                       (parsed.longitude != 0.0)) ? 1U : 0U;
+    /*
+     * Do not clear is_valid only because fix_quality is 0.
+     * The user wants lat/lon to be sent as soon as coordinate fields exist.
+     */
+    if ((parsed.latitude != 0.0) && (parsed.longitude != 0.0))
+    {
+        parsed.is_valid = 1U;
+    }
 
     g_parsed = parsed;
     return E_NMEA_ERR_NONE;
@@ -254,36 +292,82 @@ static NMEA_ErrorCode_t Nmea_ParseRmcLine(const char *line, uint16_t length)
         return E_NMEA_ERR_UNSUPPORTED_SENTENCE;
     }
 
-    if (Nmea_GetField(line, length, 2U, status, sizeof(status)) == 0U)
-    {
-        return E_NMEA_ERR_PARSE;
-    }
+    (void)Nmea_GetField(line, length, 2U, status, sizeof(status));
 
     if (Nmea_GetField(line, length, 3U, lat_field, sizeof(lat_field)) &&
         Nmea_GetField(line, length, 4U, lat_dir, sizeof(lat_dir)) &&
         Nmea_GetField(line, length, 5U, lon_field, sizeof(lon_field)) &&
         Nmea_GetField(line, length, 6U, lon_dir, sizeof(lon_dir)))
     {
-        Nmea_UpdateLatLon(&parsed, lat_field, lat_dir, lon_field, lon_dir);
+        /*
+         * RMC status A = active, V = warning.
+         * We still update coordinates if fields exist, because the requested
+         * behavior is to avoid waiting for GGA fix_quality.
+         */
+        (void)status;
+        (void)Nmea_UpdateLatLon(&parsed, lat_field, lat_dir, lon_field, lon_dir);
     }
 
-    if ((status[0] == 'A') &&
-        (parsed.latitude != 0.0) &&
-        (parsed.longitude != 0.0))
+    if ((parsed.latitude != 0.0) && (parsed.longitude != 0.0))
     {
-        /*
-         * RMC does not contain fix_quality. Mark the data valid when the RMC
-         * status is active; keep the latest GGA satellite/altitude values.
-         */
         if (parsed.fix_quality == 0U)
         {
             parsed.fix_quality = 1U;
         }
+
         parsed.is_valid = 1U;
     }
-    else
+
+    g_parsed = parsed;
+    return E_NMEA_ERR_NONE;
+}
+
+static NMEA_ErrorCode_t Nmea_ParseGllLine(const char *line, uint16_t length)
+{
+    char status[NMEA_FIELD_MAX_LEN] = {0};
+    char lat_field[NMEA_FIELD_MAX_LEN] = {0};
+    char lon_field[NMEA_FIELD_MAX_LEN] = {0};
+    char lat_dir[4] = {0};
+    char lon_dir[4] = {0};
+    GpsParsedData_t parsed = g_parsed;
+
+    if (!Nmea_IsGllSentence(line))
     {
-        parsed.is_valid = 0U;
+        return E_NMEA_ERR_UNSUPPORTED_SENTENCE;
+    }
+
+    /*
+     * GLL format:
+     * $GPGLL,lat,N/S,lon,E/W,time,status,mode*checksum
+     *
+     * field 1: latitude
+     * field 2: N/S
+     * field 3: longitude
+     * field 4: E/W
+     * field 6: status A/V
+     */
+    (void)Nmea_GetField(line, length, 6U, status, sizeof(status));
+
+    if (Nmea_GetField(line, length, 1U, lat_field, sizeof(lat_field)) &&
+        Nmea_GetField(line, length, 2U, lat_dir, sizeof(lat_dir)) &&
+        Nmea_GetField(line, length, 3U, lon_field, sizeof(lon_field)) &&
+        Nmea_GetField(line, length, 4U, lon_dir, sizeof(lon_dir)))
+    {
+        /*
+         * Same policy as RMC: update lat/lon when coordinate fields are present.
+         */
+        (void)status;
+        (void)Nmea_UpdateLatLon(&parsed, lat_field, lat_dir, lon_field, lon_dir);
+    }
+
+    if ((parsed.latitude != 0.0) && (parsed.longitude != 0.0))
+    {
+        if (parsed.fix_quality == 0U)
+        {
+            parsed.fix_quality = 1U;
+        }
+
+        parsed.is_valid = 1U;
     }
 
     g_parsed = parsed;
@@ -302,7 +386,9 @@ NMEA_ErrorCode_t Nmea_ParseLine(const char *line, uint16_t length)
         return E_NMEA_ERR_INVALID_PARAM;
     }
 
-    if ((!Nmea_IsGgaSentence(line)) && (!Nmea_IsRmcSentence(line)))
+    if ((!Nmea_IsGgaSentence(line)) &&
+        (!Nmea_IsRmcSentence(line)) &&
+        (!Nmea_IsGllSentence(line)))
     {
         return E_NMEA_ERR_UNSUPPORTED_SENTENCE;
     }
@@ -317,7 +403,12 @@ NMEA_ErrorCode_t Nmea_ParseLine(const char *line, uint16_t length)
         return Nmea_ParseGgaLine(line, length);
     }
 
-    return Nmea_ParseRmcLine(line, length);
+    if (Nmea_IsRmcSentence(line))
+    {
+        return Nmea_ParseRmcLine(line, length);
+    }
+
+    return Nmea_ParseGllLine(line, length);
 }
 
 GpsParsedData_t Nmea_GetData(void)

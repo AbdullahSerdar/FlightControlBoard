@@ -8,7 +8,7 @@
 #ifndef INC_LORA_DRIVER_H_
 #define INC_LORA_DRIVER_H_
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
 #include <stdint.h>
 
 extern UART_HandleTypeDef huart2;

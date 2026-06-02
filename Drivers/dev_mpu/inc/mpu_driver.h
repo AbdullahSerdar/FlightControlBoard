@@ -1,7 +1,7 @@
 #ifndef INC_MPU_DRIVER_H_
 #define INC_MPU_DRIVER_H_
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
 #include <stdint.h>
 #include <stddef.h>
 

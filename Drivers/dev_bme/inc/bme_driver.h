@@ -8,7 +8,7 @@
 #ifndef INC_BME_DRIVER_H_
 #define INC_BME_DRIVER_H_
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
 #include <stdint.h>
 
 #define BME_CHIP_ID 		0x60

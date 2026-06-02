@@ -87,6 +87,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
     Gps_RxCallback(huart, Size);
 }
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &huart3)
+    {
+        Gps_RxErrorCallback(huart);
+    }
+}
 /* USER CODE END 0 */
 
 /**

@@ -11,68 +11,65 @@
 #include "nmea_parser.h"
 #include "telemetry_data.h"
 #include "watchdog_manager.h"
-#include <string.h>
 
-GPS_NmeaLine_t gpsLine;
-GpsParsedData_t gpsData;
-
-volatile uint32_t g_gps_read_ok_count = 0U;
-volatile uint32_t g_gps_no_data_count = 0U;
-volatile uint32_t g_gps_parse_ok_count = 0U;
-volatile uint32_t g_gps_parse_err_count = 0U;
-volatile uint32_t g_gps_valid_count = 0U;
-volatile GPSErrorCodes_t g_gps_last_read_err = E_GPS_ERR_NONE;
-volatile NMEA_ErrorCode_t g_gps_last_parse_err = E_NMEA_ERR_NONE;
-
+#define GPS_TASK_PERIOD_MS          50U
+#define GPS_RX_RECOVERY_TIMEOUT_MS  10000U
 
 void StartGpsTask(void const * argument)
 {
     (void)argument;
 
-//    GPS_NmeaLine_t gpsLine;
-//    GpsParsedData_t gpsData;
+    GPS_NmeaLine_t gpsLine;
+    GpsParsedData_t gpsData;
+
+    uint32_t lastWakeTime;
+    uint32_t lastRxTick;
 
     while (Gps_Open(NULL) != E_GPS_ERR_NONE)
     {
-    	Watchdog_ReportGps();
+        Watchdog_ReportGps();
         osDelay(500);
     }
 
-    uint32_t lastWakeTime = osKernelSysTick();
+    lastWakeTime = osKernelSysTick();
+    lastRxTick = osKernelSysTick();
 
     for (;;)
     {
-        g_gps_last_read_err = Gps_Read(&gpsLine, sizeof(gpsLine));
-
-        if (g_gps_last_read_err == E_GPS_ERR_NONE)
+        if (Gps_Read(&gpsLine, sizeof(gpsLine)) == E_GPS_ERR_NONE)
         {
-            g_gps_read_ok_count++;
+            lastRxTick = osKernelSysTick();
 
-            g_gps_last_parse_err = Nmea_ParseLine(gpsLine.line, gpsLine.length);
-
-            if (g_gps_last_parse_err == E_NMEA_ERR_NONE)
+            if (Nmea_ParseLine(gpsLine.line, gpsLine.length) == E_NMEA_ERR_NONE)
             {
-                g_gps_parse_ok_count++;
                 gpsData = Nmea_GetData();
 
                 if (gpsData.is_valid)
                 {
-                    g_gps_valid_count++;
                     TelemetryData_UpdateGps(gpsData);
                 }
             }
-            else
-            {
-                g_gps_parse_err_count++;
-            }
         }
-        else if (g_gps_last_read_err == E_GPS_ERR_NO_DATA)
+        else
         {
-            g_gps_no_data_count++;
+            uint32_t now = osKernelSysTick();
+
+            if ((now - lastRxTick) > GPS_RX_RECOVERY_TIMEOUT_MS)
+            {
+                /*
+                 * GPS modülü veri göndermeye devam ettiği halde
+                 * STM32 RX tarafı durmuş olabilir.
+                 */
+                (void)Gps_Ioctl(E_GPS_IOCTL_RESET_BUFFER, NULL);
+                (void)Gps_Ioctl(E_GPS_IOCTL_STOP_RX, NULL);
+                (void)Gps_Ioctl(E_GPS_IOCTL_START_RX, NULL);
+
+                lastRxTick = now;
+            }
         }
 
         Watchdog_ReportGps();
 
-        osDelayUntil(&lastWakeTime, 50U);
+        osDelayUntil(&lastWakeTime, GPS_TASK_PERIOD_MS);
     }
 }
