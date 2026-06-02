@@ -9,52 +9,115 @@
 #include "watchdog_manager.h"
 #include "cmsis_os.h"
 
-#define WD_BME_ALIVE    (1U << 0)
-#define WD_GPS_ALIVE    (1U << 1)
-#define WD_MPU_ALIVE    (1U << 2)
-#define WD_LORA_ALIVE   (1U << 3)
+typedef struct
+{
+    uint32_t last_report_tick;
+    uint32_t max_allowed_delay_ms;
+    uint32_t report_count;
+    uint32_t missed_deadline_count;
+    uint8_t started;
+} WatchdogTaskStatus_t;
 
-#define WD_ALL_ALIVE    (WD_BME_ALIVE | WD_GPS_ALIVE | WD_MPU_ALIVE | WD_LORA_ALIVE)
+static volatile WatchdogTaskStatus_t g_wd_tasks[WD_TASK_COUNT];
 
-static volatile uint32_t watchdog_flags = 0;
+void Watchdog_Init(void)
+{
+    g_wd_tasks[WD_TASK_BME].last_report_tick = 0U;
+    g_wd_tasks[WD_TASK_BME].max_allowed_delay_ms = 2500U;
+    g_wd_tasks[WD_TASK_BME].report_count = 0U;
+    g_wd_tasks[WD_TASK_BME].missed_deadline_count = 0U;
+    g_wd_tasks[WD_TASK_BME].started = 0U;
 
-volatile uint32_t g_wd_flags_snapshot = 0;
-volatile uint32_t g_wd_bme_count = 0;
-volatile uint32_t g_wd_gps_count = 0;
-volatile uint32_t g_wd_mpu_count = 0;
-volatile uint32_t g_wd_lora_count = 0;
+    g_wd_tasks[WD_TASK_MPU].last_report_tick = 0U;
+    g_wd_tasks[WD_TASK_MPU].max_allowed_delay_ms = 1500U;
+    g_wd_tasks[WD_TASK_MPU].report_count = 0U;
+    g_wd_tasks[WD_TASK_MPU].missed_deadline_count = 0U;
+    g_wd_tasks[WD_TASK_MPU].started = 0U;
+
+    g_wd_tasks[WD_TASK_GPS].last_report_tick = 0U;
+    g_wd_tasks[WD_TASK_GPS].max_allowed_delay_ms = 500U;
+    g_wd_tasks[WD_TASK_GPS].report_count = 0U;
+    g_wd_tasks[WD_TASK_GPS].missed_deadline_count = 0U;
+    g_wd_tasks[WD_TASK_GPS].started = 0U;
+
+    g_wd_tasks[WD_TASK_LORA].last_report_tick = 0U;
+    g_wd_tasks[WD_TASK_LORA].max_allowed_delay_ms = 1500U;
+    g_wd_tasks[WD_TASK_LORA].report_count = 0U;
+    g_wd_tasks[WD_TASK_LORA].missed_deadline_count = 0U;
+    g_wd_tasks[WD_TASK_LORA].started = 0U;
+}
+
+void Watchdog_Report(WatchdogTaskId_t task_id)
+{
+    if (task_id >= WD_TASK_COUNT)
+    {
+        return;
+    }
+
+    g_wd_tasks[task_id].last_report_tick = osKernelSysTick();
+    g_wd_tasks[task_id].report_count++;
+    g_wd_tasks[task_id].started = 1U;
+}
 
 void Watchdog_ReportBme(void)
 {
-    watchdog_flags |= WD_BME_ALIVE;
-    g_wd_bme_count++;
+    Watchdog_Report(WD_TASK_BME);
 }
 
 void Watchdog_ReportGps(void)
 {
-    watchdog_flags |= WD_GPS_ALIVE;
-    g_wd_gps_count++;
+    Watchdog_Report(WD_TASK_GPS);
 }
 
 void Watchdog_ReportMpu(void)
 {
-    watchdog_flags |= WD_MPU_ALIVE;
-    g_wd_mpu_count++;
+    Watchdog_Report(WD_TASK_MPU);
 }
 
 void Watchdog_ReportLora(void)
 {
-    watchdog_flags |= WD_LORA_ALIVE;
-    g_wd_lora_count++;
+    Watchdog_Report(WD_TASK_LORA);
 }
 
-uint8_t Watchdog_AllTasksAlive(void)
+uint8_t Watchdog_AllTasksHealthy(void)
 {
-    g_wd_flags_snapshot = watchdog_flags;
-    return ((watchdog_flags & WD_ALL_ALIVE) == WD_ALL_ALIVE);
+    uint32_t now = osKernelSysTick();
+
+    for (uint8_t i = 0U; i < WD_TASK_COUNT; i++)
+    {
+        if (g_wd_tasks[i].started == 0U)
+        {
+            return 0U;
+        }
+
+        uint32_t elapsed = now - g_wd_tasks[i].last_report_tick;
+
+        if (elapsed > g_wd_tasks[i].max_allowed_delay_ms)
+        {
+            g_wd_tasks[i].missed_deadline_count++;
+            return 0U;
+        }
+    }
+
+    return 1U;
 }
 
-void Watchdog_ClearFlags(void)
+uint32_t Watchdog_GetLastReportTick(WatchdogTaskId_t task_id)
 {
-    watchdog_flags = 0;
+    if (task_id >= WD_TASK_COUNT)
+    {
+        return 0U;
+    }
+
+    return g_wd_tasks[task_id].last_report_tick;
+}
+
+uint32_t Watchdog_GetMissedDeadlineCount(WatchdogTaskId_t task_id)
+{
+    if (task_id >= WD_TASK_COUNT)
+    {
+        return 0U;
+    }
+
+    return g_wd_tasks[task_id].missed_deadline_count;
 }

@@ -19,8 +19,12 @@ void StartBmeTask(void const * argument)
 	(void) argument;
 
     BME_Data_t bmeData;
+
+    osDelay(1000U);
+
     while (BME_Open(NULL) != E_BME_ERR_NONE)
     {
+    	Watchdog_ReportBme();
         osDelay(500);
     }
 
@@ -31,9 +35,8 @@ void StartBmeTask(void const * argument)
 		if (BME_Read(&bmeData, sizeof(bmeData)) == E_BME_ERR_NONE)
 		{
 			TelemetryData_UpdateBme((float)bmeData.altitude, (float)bmeData.temperature_c);
-
-			Watchdog_ReportBme();
 		}
+		Watchdog_ReportBme();
 		osDelayUntil(&lastWakeTime, 1000U);
 	}
 

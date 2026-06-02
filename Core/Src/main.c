@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "gps_driver.h"
+#include "telemetry_data.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -133,6 +134,7 @@ int main(void)
   osMutexDef(telemetryMutex);
   telemetryMutexHandle = osMutexCreate(osMutex(telemetryMutex));
 
+  TelemetryData_Init();
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */

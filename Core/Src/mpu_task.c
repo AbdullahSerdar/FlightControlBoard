@@ -11,8 +11,11 @@ void StartMpuTask(void const * argument)
 
     MPU_Data_t mpuData;
 
+    osDelay(1000U);
+
     while (MPU_Open(NULL) != E_MPU_ERR_NONE)
     {
+    	Watchdog_ReportMpu();
         osDelay(500);
     }
 
@@ -23,10 +26,10 @@ void StartMpuTask(void const * argument)
         if (MPU_Read(&mpuData, sizeof(mpuData)) == E_MPU_ERR_NONE)
         {
             TelemetryData_UpdateMpu(MPU_GetDegree());
-            Watchdog_ReportMpu();
         }
 
-        osDelayUntil(&lastWakeTime, 10U);
+        Watchdog_ReportMpu();
+        osDelayUntil(&lastWakeTime, 500U);
     }
 
 }

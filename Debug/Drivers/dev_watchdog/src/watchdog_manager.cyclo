@@ -1,6 +1,9 @@
-../Drivers/dev_watchdog/src/watchdog_manager.c:27:6:Watchdog_ReportBme	1
-../Drivers/dev_watchdog/src/watchdog_manager.c:33:6:Watchdog_ReportGps	1
-../Drivers/dev_watchdog/src/watchdog_manager.c:39:6:Watchdog_ReportMpu	1
-../Drivers/dev_watchdog/src/watchdog_manager.c:45:6:Watchdog_ReportLora	1
-../Drivers/dev_watchdog/src/watchdog_manager.c:51:9:Watchdog_AllTasksAlive	1
-../Drivers/dev_watchdog/src/watchdog_manager.c:57:6:Watchdog_ClearFlags	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:23:6:Watchdog_Init	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:50:6:Watchdog_Report	2
+../Drivers/dev_watchdog/src/watchdog_manager.c:62:6:Watchdog_ReportBme	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:67:6:Watchdog_ReportGps	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:72:6:Watchdog_ReportMpu	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:77:6:Watchdog_ReportLora	1
+../Drivers/dev_watchdog/src/watchdog_manager.c:82:9:Watchdog_AllTasksHealthy	4
+../Drivers/dev_watchdog/src/watchdog_manager.c:105:10:Watchdog_GetLastReportTick	2
+../Drivers/dev_watchdog/src/watchdog_manager.c:115:10:Watchdog_GetMissedDeadlineCount	2

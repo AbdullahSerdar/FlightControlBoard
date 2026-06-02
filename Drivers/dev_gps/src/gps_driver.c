@@ -12,7 +12,8 @@ typedef struct
     volatile uint32_t overflow_count;
 } GPS_Context_t;
 
-static GPS_Context_t g_gps = {
+static GPS_Context_t g_gps =
+{
     .state = GPS_STATE_CLOSED,
     .huart = NULL,
     .ring_head = 0U,
@@ -37,12 +38,19 @@ static GPSErrorCodes_t GPS_StartRx(void)
         return E_GPS_ERR_INVALID_PARAM;
     }
 
-    if (HAL_UARTEx_ReceiveToIdle_DMA(g_gps.huart, gps_rx_buf, sizeof(gps_rx_buf)) != HAL_OK)
+    if (HAL_UARTEx_ReceiveToIdle_DMA(g_gps.huart,
+                                     gps_rx_buf,
+                                     sizeof(gps_rx_buf)) != HAL_OK)
     {
         return E_GPS_ERR_UART;
     }
 
+    /*
+     * Half-transfer interrupt is not needed for ReceiveToIdle.
+     * It can create unnecessary callbacks with half packets.
+     */
     __HAL_DMA_DISABLE_IT(g_gps.huart->hdmarx, DMA_IT_HT);
+
     return E_GPS_ERR_NONE;
 }
 
@@ -73,7 +81,9 @@ static void GPS_RingReset(void)
 
 static void GPS_RingWriteByte(uint8_t byte)
 {
-    uint16_t next_head = (uint16_t)((g_gps.ring_head + 1U) % GPS_RING_BUFFER_SIZE);
+    uint16_t next_head;
+
+    next_head = (uint16_t)((g_gps.ring_head + 1U) % GPS_RING_BUFFER_SIZE);
 
     if (next_head != g_gps.ring_tail)
     {
@@ -105,8 +115,14 @@ static uint8_t GPS_RingReadByte(uint8_t *byte)
 }
 
 /*
- * Reads one complete NMEA sentence from ring buffer.
- * A valid returned line starts with '$' and ends with '\n'.
+ * Reads one complete NMEA sentence from the ring buffer.
+ *
+ * Accepted sentence format:
+ *   $.....\r\n
+ *   $.....\n
+ *   $.....\r
+ *
+ * Returned line is always null-terminated.
  */
 static uint8_t GPS_InternalReadLine(char *line, uint16_t max_len, uint16_t *out_len)
 {
@@ -118,37 +134,53 @@ static uint8_t GPS_InternalReadLine(char *line, uint16_t max_len, uint16_t *out_
         return 0U;
     }
 
-    while (GPS_RingReadByte(&byte))
+    while (GPS_RingReadByte(&byte) != 0U)
     {
-        if (byte == '$')
+        /*
+         * NMEA sentence starts with '$'. Drop everything before '$'.
+         */
+        if (byte == (uint8_t)'$')
         {
             index = 0U;
             line[index++] = (char)byte;
+            continue;
         }
-        else if (index > 0U)
+
+        /*
+         * If a sentence has not started yet, ignore incoming bytes.
+         */
+        if (index == 0U)
         {
-            if (index < (max_len - 1U))
+            continue;
+        }
+
+        /*
+         * Prevent line buffer overflow.
+         */
+        if (index >= (uint16_t)(max_len - 1U))
+        {
+            index = 0U;
+            g_gps.overflow_count++;
+            continue;
+        }
+
+        line[index++] = (char)byte;
+
+        /*
+         * NMEA normally ends with CRLF. Some paths can deliver only CR or LF.
+         * Accept both '\r' and '\n' as a line terminator.
+         */
+        if ((byte == (uint8_t)'\n') || (byte == (uint8_t)'\r'))
+        {
+            line[index] = '\0';
+
+            if (out_len != NULL)
             {
-                line[index++] = (char)byte;
-
-                if (byte == '\n')
-                {
-                    line[index] = '\0';
-
-                    if (out_len != NULL)
-                    {
-                        *out_len = index;
-                    }
-
-                    index = 0U;
-                    return 1U;
-                }
+                *out_len = index;
             }
-            else
-            {
-                index = 0U;
-                g_gps.overflow_count++;
-            }
+
+            index = 0U;
+            return 1U;
         }
     }
 
@@ -172,6 +204,9 @@ void Gps_RxCallback(UART_HandleTypeDef *huart, uint16_t Size)
         GPS_RingWriteByte(gps_rx_buf[i]);
     }
 
+    /*
+     * Restart ReceiveToIdle DMA after each event.
+     */
     (void)GPS_StartRx();
 }
 
@@ -183,7 +218,7 @@ GPSErrorCodes_t Gps_Open(void *vpParam)
 
     if (g_gps.state == GPS_STATE_OPEN)
     {
-        return E_GPS_ERR_ALREADY_OPEN;
+        return E_GPS_ERR_NONE;
     }
 
     if (vpParam == NULL)
@@ -204,15 +239,21 @@ GPSErrorCodes_t Gps_Open(void *vpParam)
     g_gps.huart = open_config->huart;
     GPS_RingReset();
 
+    /*
+     * Set state before starting DMA so that an early RxEvent callback is not
+     * discarded while DMA is already receiving data.
+     */
+    g_gps.state = GPS_STATE_OPEN;
+
     err = GPS_StartRx();
     if (err != E_GPS_ERR_NONE)
     {
         g_gps.huart = NULL;
         g_gps.state = GPS_STATE_CLOSED;
+        GPS_RingReset();
         return err;
     }
 
-    g_gps.state = GPS_STATE_OPEN;
     return E_GPS_ERR_NONE;
 }
 
@@ -233,7 +274,9 @@ GPSErrorCodes_t Gps_Read(void *pvBuffer, uint32_t xBytes)
     out_line = (GPS_NmeaLine_t *)pvBuffer;
     memset(out_line, 0, sizeof(GPS_NmeaLine_t));
 
-    if (GPS_InternalReadLine(out_line->line, sizeof(out_line->line), &out_line->length) == 0U)
+    if (GPS_InternalReadLine(out_line->line,
+                             sizeof(out_line->line),
+                             &out_line->length) == 0U)
     {
         return E_GPS_ERR_NO_DATA;
     }
@@ -253,7 +296,10 @@ GPSErrorCodes_t Gps_Write(const void *pvBuffer, uint32_t xBytes)
         return E_GPS_ERR_INVALID_PARAM;
     }
 
-    if (HAL_UART_Transmit(g_gps.huart, (uint8_t *)pvBuffer, (uint16_t)xBytes, GPS_UART_TIMEOUT_MS) != HAL_OK)
+    if (HAL_UART_Transmit(g_gps.huart,
+                          (uint8_t *)pvBuffer,
+                          (uint16_t)xBytes,
+                          GPS_UART_TIMEOUT_MS) != HAL_OK)
     {
         return E_GPS_ERR_UART;
     }
@@ -263,17 +309,23 @@ GPSErrorCodes_t Gps_Write(const void *pvBuffer, uint32_t xBytes)
 
 GPSErrorCodes_t Gps_Ioctl(GPS_IoctlCommand_t command, void *vpParam)
 {
-    GPSErrorCodes_t err;
-
     switch (command)
     {
     case E_GPS_IOCTL_GET_STATE:
-        if (vpParam == NULL) { return E_GPS_ERR_INVALID_PARAM; }
+        if (vpParam == NULL)
+        {
+            return E_GPS_ERR_INVALID_PARAM;
+        }
+
         *(GPS_State_t *)vpParam = g_gps.state;
         return E_GPS_ERR_NONE;
 
     case E_GPS_IOCTL_GET_OVERFLOW_COUNT:
-        if (vpParam == NULL) { return E_GPS_ERR_INVALID_PARAM; }
+        if (vpParam == NULL)
+        {
+            return E_GPS_ERR_INVALID_PARAM;
+        }
+
         *(uint32_t *)vpParam = g_gps.overflow_count;
         return E_GPS_ERR_NONE;
 
@@ -282,19 +334,24 @@ GPSErrorCodes_t Gps_Ioctl(GPS_IoctlCommand_t command, void *vpParam)
         return E_GPS_ERR_NONE;
 
     case E_GPS_IOCTL_START_RX:
-        if (g_gps.state != GPS_STATE_OPEN) { return E_GPS_ERR_NOT_OPEN; }
+        if (g_gps.state != GPS_STATE_OPEN)
+        {
+            return E_GPS_ERR_NOT_OPEN;
+        }
+
         return GPS_StartRx();
 
     case E_GPS_IOCTL_STOP_RX:
-        if (g_gps.state != GPS_STATE_OPEN) { return E_GPS_ERR_NOT_OPEN; }
+        if (g_gps.state != GPS_STATE_OPEN)
+        {
+            return E_GPS_ERR_NOT_OPEN;
+        }
+
         return GPS_StopRx();
 
     default:
-        err = E_GPS_ERR_WRONG_IOCTL_CMD;
-        break;
+        return E_GPS_ERR_WRONG_IOCTL_CMD;
     }
-
-    return err;
 }
 
 GPSErrorCodes_t Gps_Close(void *vpParam)
@@ -320,4 +377,3 @@ GPSErrorCodes_t Gps_Close(void *vpParam)
 
     return E_GPS_ERR_NONE;
 }
-

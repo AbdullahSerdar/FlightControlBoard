@@ -40,6 +40,17 @@ static uint16_t BME_DevAddr8(void)
     return (uint16_t)(g_bme.i2c_addr_7bit << 1U);
 }
 
+static void BME_RecoverI2cBus(void)
+{
+    if (g_bme.hi2c != NULL)
+    {
+        (void)HAL_I2C_DeInit(g_bme.hi2c);
+        osDelay(20U);
+        (void)HAL_I2C_Init(g_bme.hi2c);
+        osDelay(20U);
+    }
+}
+
 static BME_ErrorCode_t BME_WriteRegister(uint8_t reg, const uint8_t *data, uint16_t len)
 {
     if ((g_bme.hi2c == NULL) || (data == NULL) || (len == 0U))
@@ -53,7 +64,7 @@ static BME_ErrorCode_t BME_WriteRegister(uint8_t reg, const uint8_t *data, uint1
                           I2C_MEMADD_SIZE_8BIT,
 						  (uint8_t *)data,
                           len,
-                          1000U) != HAL_OK)
+                          100U) != HAL_OK)
     {
         return E_BME_ERR_HAL;
     }
@@ -74,7 +85,7 @@ static BME_ErrorCode_t BME_ReadRegister(uint8_t reg, uint8_t *data, uint16_t len
                          I2C_MEMADD_SIZE_8BIT,
                          data,
                          len,
-                         1000U) != HAL_OK)
+                         100U) != HAL_OK)
     {
         return E_BME_ERR_HAL;
     }
@@ -82,7 +93,7 @@ static BME_ErrorCode_t BME_ReadRegister(uint8_t reg, uint8_t *data, uint16_t len
     return E_BME_ERR_NONE;
 }
 
-/* TRIM DEGERLERİNİN OKUNMASI*/
+/* TRIM DEGERLERÄ°NÄ°N OKUNMASI*/
 static BME_ErrorCode_t read_trim_values()
 {
 	BME_ErrorCode_t err;
@@ -111,7 +122,7 @@ static BME_ErrorCode_t read_trim_values()
 	return E_BME_ERR_NONE;
 }
 
-/* BME OPEN YAPISININ FONKSİYONLARI*/
+/* BME OPEN YAPISININ FONKSÄ°YONLARI*/
 static BME_ErrorCode_t BME_ApplyConfig(const BME_Config_t *config)
 {
 	BME_ErrorCode_t err;
@@ -122,10 +133,10 @@ static BME_ErrorCode_t BME_ApplyConfig(const BME_Config_t *config)
 		return E_BME_ERR_INVALID_PARAM;
 	}
 
-//	datawrite = config->reset_val;
-//	err = BME_WriteRegister(BME_RESET, &datawrite, 1U);
-//	if (err != E_BME_ERR_NONE) { return err; }
-//	osDelay(50);
+	datawrite = config->reset_val;
+	err = BME_WriteRegister(BME_RESET, &datawrite, 1U);
+	if (err != E_BME_ERR_NONE) { return err; }
+	osDelay(100U);
 
 	if(read_trim_values() != E_BME_ERR_NONE)
 	{
@@ -155,15 +166,31 @@ static BME_ErrorCode_t BME_HardwareInit(const BME_OpenConfig_t *open_config)
 	g_bme.hi2c = open_config->hi2c;
 	g_bme.i2c_addr_7bit = open_config->i2c_addr_7bit;
 
-	err = BME_ReadRegister(BME_CHIP_ID_REGISTER, &chip_id, 1U);
-	if(err != E_BME_ERR_NONE)
-	{
-		return err;
-	}
+	osDelay(100U);
 
-	if(chip_id != BME_CHIP_ID)
+	err = BME_ReadRegister(BME_CHIP_ID_REGISTER, &chip_id, 1U);
+	if ((err != E_BME_ERR_NONE) || (chip_id != BME_CHIP_ID))
 	{
-		return E_BME_ERR_WRONG_ID;
+		/*
+		 * Some BME280 modules use 0x77 instead of 0x76 depending on SDO.
+		 * Try the alternate address once before declaring the sensor missing.
+		 */
+		uint8_t alternate_addr = (open_config->i2c_addr_7bit == 0x76U) ? 0x77U : 0x76U;
+
+		BME_RecoverI2cBus();
+		g_bme.i2c_addr_7bit = alternate_addr;
+		chip_id = 0U;
+
+		err = BME_ReadRegister(BME_CHIP_ID_REGISTER, &chip_id, 1U);
+		if (err != E_BME_ERR_NONE)
+		{
+			return err;
+		}
+
+		if (chip_id != BME_CHIP_ID)
+		{
+			return E_BME_ERR_WRONG_ID;
+		}
 	}
 
 	config.filter    = open_config->filter;
@@ -190,7 +217,7 @@ BME_ErrorCode_t BME_Open(void *vpParam)
 
 	if(g_bme.state == BME_STATE_OPEN)
 	{
-		return E_BME_ERR_ALREADY_OPEN;
+		return E_BME_ERR_NONE;
 	}
 
 	if(vpParam == NULL)
@@ -218,6 +245,7 @@ BME_ErrorCode_t BME_Open(void *vpParam)
     err = BME_HardwareInit(open_config);
     if (err != E_BME_ERR_NONE)
     {
+        BME_RecoverI2cBus();
         g_bme.state = BME_STATE_CLOSED;
         return err;
     }
@@ -413,7 +441,6 @@ BME_ErrorCode_t BME_Close(void *vpParam)
 
 	return E_BME_ERR_NONE;
 }
-
 
 
 

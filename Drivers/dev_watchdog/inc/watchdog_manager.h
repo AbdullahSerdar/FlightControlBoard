@@ -10,12 +10,27 @@
 
 #include <stdint.h>
 
+typedef enum
+{
+    WD_TASK_BME = 0,
+    WD_TASK_MPU,
+    WD_TASK_GPS,
+    WD_TASK_LORA,
+    WD_TASK_COUNT
+} WatchdogTaskId_t;
+
+void Watchdog_Init(void);
+
+void Watchdog_Report(WatchdogTaskId_t task_id);
+
 void Watchdog_ReportBme(void);
 void Watchdog_ReportGps(void);
 void Watchdog_ReportMpu(void);
 void Watchdog_ReportLora(void);
 
-uint8_t Watchdog_AllTasksAlive(void);
-void Watchdog_ClearFlags(void);
+uint8_t Watchdog_AllTasksHealthy(void);
 
-#endif /* INC_WATCHDOG_MANAGER_H_ */
+uint32_t Watchdog_GetLastReportTick(WatchdogTaskId_t task_id);
+uint32_t Watchdog_GetMissedDeadlineCount(WatchdogTaskId_t task_id);
+
+#endif

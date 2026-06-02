@@ -114,7 +114,6 @@ void StartLoraTask(void const * argument)
     TelemetryData_t snapshot;
     LoRaPacket_t packet;
 
-    TelemetryData_Init();
     LoraSecurity_Init();
     Lora_Init(0x00, 0x61, 0x62, 0x00, 0x01);
     osDelay(500);

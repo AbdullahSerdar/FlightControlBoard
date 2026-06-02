@@ -13,14 +13,17 @@ extern IWDG_HandleTypeDef hiwdg;
 
 void StartWatchdogTask(void const * argument)
 {
+    (void)argument;
+
+    Watchdog_Init();
+
     for (;;)
     {
-        if (Watchdog_AllTasksAlive())
+        if (Watchdog_AllTasksHealthy())
         {
-            Watchdog_ClearFlags();
             HAL_IWDG_Refresh(&hiwdg);
         }
 
-        osDelay(1000);
+        osDelay(500);
     }
 }
