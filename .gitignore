@@ -1,0 +1,23 @@
+# Derleme (Build) Çıktıları
+Debug/
+Release/
+*.o
+*.d
+*.su
+*.cyclo
+*.elf
+*.hex
+*.bin
+*.map
+*.list
+*.out
+
+# Eclipse / STM32CubeIDE Yerel Ayarları ve Loglar
+.metadata/
+*.launch
+*.log
+
+# İşletim Sistemi Geçici Dosyaları
+.DS_Store
+Thumbs.db
+Desktop.ini

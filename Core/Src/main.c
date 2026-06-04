@@ -135,6 +135,10 @@ int main(void)
 
 //  buffer_who = WhoAmI(&buffer_who);
 
+#ifdef TEST_STATE
+  RunAllTests();
+#endif
+
   /* USER CODE END 2 */
 
   /* Create the mutex(es) */

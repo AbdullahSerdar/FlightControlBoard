@@ -1,5 +1,0 @@
-../Core/Src/lora_task.c:18:16:Lora_IsGpsValid	16	static
-../Core/Src/lora_task.c:39:17:Lora_BuildSensorStatus	24	static
-../Core/Src/lora_task.c:61:14:Lora_CalculateFusionAltitude	16	static
-../Core/Src/lora_task.c:76:13:Lora_BuildPacket	16	static
-../Core/Src/lora_task.c:110:6:StartLoraTask	152	static

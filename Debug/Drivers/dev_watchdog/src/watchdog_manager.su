@@ -1,9 +1,0 @@
-../Drivers/dev_watchdog/src/watchdog_manager.c:23:6:Watchdog_Init	4	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:50:6:Watchdog_Report	24	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:62:6:Watchdog_ReportBme	8	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:67:6:Watchdog_ReportGps	8	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:72:6:Watchdog_ReportMpu	8	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:77:6:Watchdog_ReportLora	8	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:82:9:Watchdog_AllTasksHealthy	24	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:105:10:Watchdog_GetLastReportTick	16	static
-../Drivers/dev_watchdog/src/watchdog_manager.c:115:10:Watchdog_GetMissedDeadlineCount	16	static
