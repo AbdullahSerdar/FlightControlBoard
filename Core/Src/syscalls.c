@@ -30,6 +30,8 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
+#include "stm32f4xx_hal.h"
+#include "core_cm4.h"
 
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
@@ -173,4 +175,10 @@ int _execve(char *name, char **argv, char **env)
   (void)env;
   errno = ENOMEM;
   return -1;
+}
+
+int __io_putchar(int ch)
+{
+	ITM_SendChar(ch);
+    return ch;
 }

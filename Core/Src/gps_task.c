@@ -56,10 +56,6 @@ void StartGpsTask(void const * argument)
 
             if ((now - lastRxTick) > GPS_RX_RECOVERY_TIMEOUT_MS)
             {
-                /*
-                 * GPS modülü veri göndermeye devam ettiği halde
-                 * STM32 RX tarafı durmuş olabilir.
-                 */
                 (void)Gps_Ioctl(E_GPS_IOCTL_RESET_BUFFER, NULL);
                 (void)Gps_Ioctl(E_GPS_IOCTL_STOP_RX, NULL);
                 (void)Gps_Ioctl(E_GPS_IOCTL_START_RX, NULL);

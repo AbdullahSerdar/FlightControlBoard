@@ -1,29 +1,26 @@
 #include "unity.h"
 #include "mock_i2c.h"
 #include "mock_uart.h"
+#include "test_runner.h"
 
-/* Tum test suite basliklari */
 #include "bme_unit_test.h"
 #include "gps_unit_test.h"
 #include "lora_unit_test.h"
 #include "mpu_unit_test.h"
 
-/* * Unity tarafindan her test fonksiyonundan once cagirilir.
- * Multiple definition hatasini engellemek icin sadece burada tanimlanmistir.
- */
+#include <stdio.h>
+
 void setUp(void)
 {
     MockI2C_Init();
     MockUART_Init();
 }
 
-/* Unity tarafindan her test fonksiyonundan sonra cagirilir. */
 void tearDown(void)
 {
-    /* Gerekirse temizleme islemleri yapilabilir */
+	// Bosluk
 }
 
-/* Projenin main.c dosyasindan cagrilacak ana test fonksiyonu */
 void RunAllTests(void)
 {
     UNITY_BEGIN();
@@ -33,5 +30,6 @@ void RunAllTests(void)
     RunLoraUnitTests();
     RunMpuUnitTests();
 
-    (void)UNITY_END();
+    int result = UNITY_END();
+
 }

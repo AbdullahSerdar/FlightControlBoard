@@ -14,6 +14,9 @@ static void Test_GPS_Open_Success(void)
     GPSErrorCodes_t err = Gps_Open(&config);
 
     TEST_ASSERT_EQUAL(E_GPS_ERR_NONE, err);
+
+    /* Bir sonraki test icin surucuyu kapatip temizliyoruz */
+    (void)Gps_Close(NULL);
 }
 
 static void Test_GPS_Open_HalError(void)

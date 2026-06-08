@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "test_runner.h"
 #include "gps_driver.h"
 #include "telemetry_data.h"
 /* USER CODE END Includes */
@@ -57,6 +58,7 @@ osThreadId bmeTaskHandle;
 osThreadId mpuTaskHandle;
 osThreadId loraTaskHandle;
 osThreadId iwdgTaskHandle;
+osThreadId testTaskHandle;
 osMutexId telemetryMutexHandle;
 /* USER CODE BEGIN PV */
 
@@ -76,6 +78,7 @@ void StartBmeTask(void const * argument);
 void StartMpuTask(void const * argument);
 void StartLoraTask(void const * argument);
 void StartWatchdogTask(void const * argument);
+void StartTestTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -135,10 +138,6 @@ int main(void)
 
 //  buffer_who = WhoAmI(&buffer_who);
 
-#ifdef TEST_STATE
-  RunAllTests();
-#endif
-
   /* USER CODE END 2 */
 
   /* Create the mutex(es) */
@@ -183,6 +182,10 @@ int main(void)
   /* definition and creation of iwdgTask */
   osThreadDef(iwdgTask, StartWatchdogTask, osPriorityAboveNormal, 0, 128);
   iwdgTaskHandle = osThreadCreate(osThread(iwdgTask), NULL);
+
+  /* definition and creation of testTask */
+//  osThreadDef(testTask, StartTestTask, osPriorityNormal, 0, 256);
+//  testTaskHandle = osThreadCreate(osThread(testTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
