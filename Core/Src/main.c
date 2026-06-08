@@ -162,6 +162,7 @@ int main(void)
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
+  #if !TEST_ENABLE
   /* Create the thread(s) */
   /* definition and creation of gpsTask */
   osThreadDef(gpsTask, StartGpsTask, osPriorityNormal, 0, 256);
@@ -183,10 +184,13 @@ int main(void)
   osThreadDef(iwdgTask, StartWatchdogTask, osPriorityAboveNormal, 0, 128);
   iwdgTaskHandle = osThreadCreate(osThread(iwdgTask), NULL);
 
-  /* definition and creation of testTask */
-//  osThreadDef(testTask, StartTestTask, osPriorityNormal, 0, 256);
-//  testTaskHandle = osThreadCreate(osThread(testTask), NULL);
+  #else
 
+  /* definition and creation of testTask */
+  osThreadDef(testTask, StartTestTask, osPriorityNormal, 0, 256);
+  testTaskHandle = osThreadCreate(osThread(testTask), NULL);
+
+  #endif
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
